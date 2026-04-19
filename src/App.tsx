@@ -128,15 +128,8 @@ export default function App() {
           body: 'Your files have been converted successfully!',
           icon: '/brand.png',
           badge: '/brand.png',
-          vibrate: [200, 100, 200],
           tag: 'conversion-complete',
-          requireInteraction: false,
-          actions: [
-            {
-              action: 'open',
-              title: 'Open'
-            }
-          ]
+          requireInteraction: false
         });
       } catch (error) {
         // Fallback to regular notification
@@ -772,7 +765,7 @@ export default function App() {
 
       </main>
 
-      <div className="fixed inset-x-0 bottom-4 z-[82] flex justify-center px-3 sm:hidden">
+      <div className="fixed inset-x-0 bottom-6 z-[82] flex justify-center px-3 sm:hidden">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -831,11 +824,11 @@ export default function App() {
             type="button"
             onClick={handleMobileSearch}
             whileTap={{ scale: 0.95 }}
-            className="relative z-10 mb-[7px] flex h-[58px] w-[58px] shrink-0 items-center justify-center rounded-full border border-white/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.97)_0%,rgba(247,248,251,0.96)_100%)] text-[#4B5563] shadow-[0_12px_26px_rgba(15,23,42,0.2),0_5px_12px_rgba(255,255,255,0.42)_inset]"
+            className="relative z-10 mb-[10px] flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full border border-white/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.97)_0%,rgba(247,248,251,0.96)_100%)] text-[#4B5563] shadow-[0_12px_26px_rgba(15,23,42,0.2),0_5px_12px_rgba(255,255,255,0.42)_inset]"
             aria-label="Search"
             title="Search"
           >
-            <Search className="h-[24px] w-[24px]" strokeWidth={2.25} />
+            <Search className="h-[22px] w-[22px]" strokeWidth={2.25} />
           </motion.button>
         </motion.div>
       </div>
@@ -908,9 +901,6 @@ export default function App() {
                       <div>
                         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Current view</p>
                         <p className="mt-1 text-[14px] font-semibold capitalize text-slate-900">{activeTab}</p>
-                      </div>
-                      <div className="rounded-full bg-white px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#2563EB] shadow-[0_8px_18px_rgba(37,99,235,0.1)]">
-                        Mobile
                       </div>
                     </div>
 
