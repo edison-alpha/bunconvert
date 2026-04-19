@@ -1342,7 +1342,7 @@ export default function App() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2, ease: 'easeOut' }}
                 onSubmit={handleSearchSubmit}
-                className={`mobile-dock relative flex h-[54px] flex-1 items-center overflow-visible rounded-full border px-[12px] shadow-[0_18px_38px_rgba(15,23,42,0.16),0_8px_18px_rgba(255,255,255,0.42)_inset] backdrop-blur-[28px] ${
+                className={`mobile-dock relative flex h-[60px] flex-1 items-center overflow-visible rounded-full border px-[12px] shadow-[0_18px_38px_rgba(15,23,42,0.16),0_8px_18px_rgba(255,255,255,0.42)_inset] backdrop-blur-[28px] ${
                   isDarkMode
                     ? 'border-slate-600/80 bg-[linear-gradient(180deg,rgba(30,41,59,0.92)_0%,rgba(30,41,59,0.64)_48%,rgba(15,23,42,0.82)_100%)]'
                     : 'border-white/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(255,255,255,0.64)_48%,rgba(245,247,251,0.82)_100%)]'
@@ -1386,7 +1386,7 @@ export default function App() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2, ease: 'easeOut' }}
-                className={`mobile-dock relative flex h-[54px] flex-1 items-center justify-between overflow-visible rounded-full border px-[6px] shadow-[0_18px_38px_rgba(15,23,42,0.16),0_8px_18px_rgba(255,255,255,0.42)_inset] backdrop-blur-[28px] ${
+                className={`mobile-dock relative flex h-[60px] flex-1 items-center justify-between overflow-visible rounded-full border px-[6px] shadow-[0_18px_38px_rgba(15,23,42,0.16),0_8px_18px_rgba(255,255,255,0.42)_inset] backdrop-blur-[28px] ${
                   isDarkMode
                     ? 'border-slate-600/80 bg-[linear-gradient(180deg,rgba(30,41,59,0.92)_0%,rgba(30,41,59,0.64)_48%,rgba(15,23,42,0.82)_100%)]'
                     : 'border-white/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(255,255,255,0.64)_48%,rgba(245,247,251,0.82)_100%)]'
@@ -1410,7 +1410,7 @@ export default function App() {
                       <motion.div
                         animate={{ y: 0, scale: isActive ? 1 : 0.96 }}
                         transition={{ duration: 0.22, ease: 'easeOut' }}
-                        className={`relative flex h-full w-full flex-col items-center justify-center gap-[3px] overflow-hidden rounded-full p-[6px] ${
+                        className={`relative flex h-full w-full flex-col items-center justify-center gap-[3px] overflow-hidden rounded-full p-[10px] ${
                           isActive
                             ? isDarkMode
                               ? 'border border-slate-400/50 bg-slate-700/60 text-[#BFDBFE] shadow-[0_8px_18px_rgba(15,23,42,0.20),0_1px_0_rgba(203,213,225,0.12)_inset]'
@@ -1435,11 +1435,11 @@ export default function App() {
                             className={`${
                               isActive
                                 ? isDarkMode
-                                  ? 'h-[22px] w-[22px] text-[#1D4ED8]'
-                                  : 'h-[22px] w-[22px] text-[#2563EB]'
+                                  ? 'h-[24px] w-[24px] text-[#1D4ED8]'
+                                  : 'h-[24px] w-[24px] text-[#2563EB]'
                                 : isDarkMode
-                                  ? 'h-[20px] w-[20px] text-[#94A3B8]'
-                                  : 'h-[20px] w-[20px]'
+                                  ? 'h-[22px] w-[22px] text-[#94A3B8]'
+                                  : 'h-[22px] w-[22px]'
                             }`}
                             strokeWidth={2.35}
                           />
@@ -1476,7 +1476,7 @@ export default function App() {
             type="button"
             onClick={handleMobileSearch}
             whileTap={{ scale: 0.95 }}
-            className={`mobile-search-btn relative z-10 flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full border shadow-[0_12px_26px_rgba(15,23,42,0.2),0_5px_12px_rgba(255,255,255,0.42)_inset] ${
+            className={`mobile-search-btn relative z-10 flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-full border shadow-[0_12px_26px_rgba(15,23,42,0.2),0_5px_12px_rgba(255,255,255,0.42)_inset] ${
               showSearchForm
                 ? isDarkMode
                   ? 'border-slate-600/90 bg-[linear-gradient(180deg,rgba(51,65,85,0.97)_0%,rgba(30,41,59,0.96)_100%)] text-slate-300'
@@ -1488,7 +1488,7 @@ export default function App() {
             aria-label="Search"
             title="Search"
           >
-            <Search className="h-[22px] w-[22px]" strokeWidth={2.25} />
+            <Search className="h-[24px] w-[24px]" strokeWidth={2.25} />
           </motion.button>
         </motion.div>
       </div>

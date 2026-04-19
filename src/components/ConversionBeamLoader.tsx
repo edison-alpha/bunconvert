@@ -53,7 +53,7 @@ export default function ConversionBeamLoader({
                 <img
                   src="/brand.png"
                   alt="BUNCONVERT"
-                  className={`h-12 w-12 rounded-full object-cover sm:h-14 sm:w-14 ${
+                  className={`h-20 w-20 rounded-full object-cover sm:h-24 sm:w-24 ${
                     isDarkMode ? 'ring-2 ring-slate-700/85' : ''
                   }`}
                 />
