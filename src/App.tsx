@@ -70,12 +70,21 @@ export default function App() {
     return window.localStorage.getItem('bunconvert-theme') === 'dark';
   });
 
-  // Request notification permission on mount
-  useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
+  const requestNotificationPermission = async (): Promise<NotificationPermission> => {
+    if (!('Notification' in window)) {
+      return 'denied';
     }
-  }, []);
+
+    if (Notification.permission !== 'default') {
+      return Notification.permission;
+    }
+
+    try {
+      return await Notification.requestPermission();
+    } catch {
+      return Notification.permission;
+    }
+  };
 
   useEffect(() => {
     window.localStorage.setItem('bunconvert-theme', isDarkMode ? 'dark' : 'light');
@@ -130,38 +139,43 @@ export default function App() {
   }, [previewItem, converting]);
 
   const showNotification = async () => {
-    // Check if service worker and notifications are supported
-    if (!('serviceWorker' in navigator) || !('Notification' in window)) {
+    // Notifications are optional and only shown when permission is granted.
+    if (!('Notification' in window)) {
       return;
     }
 
-    // Request permission if not granted
-    if (Notification.permission === 'default') {
-      await Notification.requestPermission();
+    const permission = await requestNotificationPermission();
+    if (permission !== 'granted') {
+      return;
     }
 
-    if (Notification.permission === 'granted') {
-      try {
-        // Try to use service worker notification (native-like)
-        const registration = await navigator.serviceWorker.ready;
+    const notificationOptions: NotificationOptions = {
+      body: 'Your files have been converted successfully!',
+      icon: '/brand.png',
+      badge: '/brand.png',
+      tag: 'conversion-complete',
+      requireInteraction: false,
+    };
+
+    try {
+      const registration = 'serviceWorker' in navigator
+        ? await navigator.serviceWorker.getRegistration()
+        : undefined;
+
+      if (registration) {
         await registration.showNotification('BUNCONVERT', {
-          body: 'Your files have been converted successfully!',
-          icon: '/brand.png',
-          badge: '/brand.png',
-          tag: 'conversion-complete',
-          requireInteraction: false
+          ...notificationOptions,
         });
-      } catch (error) {
-        // Fallback to regular notification
-        console.log('Service worker notification failed, using fallback');
-        new Notification('BUNCONVERT', {
-          body: 'Your files have been converted successfully!',
-          icon: '/brand.png',
-          badge: '/brand.png',
-          tag: 'conversion-complete',
-          requireInteraction: false
-        });
+        return;
       }
+    } catch (error) {
+      console.error('Service worker notification failed, using fallback', error);
+    }
+
+    try {
+      new Notification('BUNCONVERT', notificationOptions);
+    } catch (error) {
+      console.error('Fallback notification failed', error);
     }
   };
 
@@ -354,6 +368,11 @@ export default function App() {
   };
 
   const handleAction = () => {
+    if (!done) {
+      // Trigger permission request from a user action to increase allow rate.
+      void requestNotificationPermission();
+    }
+
     if (done) {
       files.forEach(f => processDownload(f));
       return;
