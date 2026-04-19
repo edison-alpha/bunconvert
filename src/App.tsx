@@ -82,6 +82,18 @@ export default function App() {
   }, [isDarkMode]);
 
   useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+    const nextTheme = isDarkMode ? 'theme-dark' : 'theme-light';
+    const prevTheme = isDarkMode ? 'theme-light' : 'theme-dark';
+
+    root.classList.remove(prevTheme);
+    root.classList.add(nextTheme);
+    body.classList.remove(prevTheme);
+    body.classList.add(nextTheme);
+  }, [isDarkMode]);
+
+  useEffect(() => {
     let cancelled = false;
     let hideTimeout: number | undefined;
     const startedAt = Date.now();

@@ -9,7 +9,21 @@
 body {
   font-family: var(--font-sans);
   background-color: #E2ECFA;
+  color: #0f172a;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 300ms ease, color 300ms ease;
+}
+
+html.theme-light,
+body.theme-light {
+  background-color: #E2ECFA;
+  color: #0f172a;
+}
+
+html.theme-dark,
+body.theme-dark {
+  background-color: #0B1220;
+  color: #e2e8f0;
 }
 
 .app-shell {
