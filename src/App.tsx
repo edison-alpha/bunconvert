@@ -95,11 +95,20 @@ export default function App() {
     const body = document.body;
     const nextTheme = isDarkMode ? 'theme-dark' : 'theme-light';
     const prevTheme = isDarkMode ? 'theme-light' : 'theme-dark';
+    const nextThemeColor = isDarkMode ? '#0B1220' : '#E2ECFA';
 
     root.classList.remove(prevTheme);
     root.classList.add(nextTheme);
     body.classList.remove(prevTheme);
     body.classList.add(nextTheme);
+
+    root.style.backgroundColor = nextThemeColor;
+    body.style.backgroundColor = nextThemeColor;
+
+    const themeColorMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (themeColorMeta) {
+      themeColorMeta.content = nextThemeColor;
+    }
   }, [isDarkMode]);
 
   useEffect(() => {
@@ -435,7 +444,7 @@ export default function App() {
   ] as const;
 
   return (
-    <div className={`app-shell ${isDarkMode ? 'theme-dark bg-[#0B1220]' : 'theme-light bg-[#E2ECFA]'} min-h-screen flex flex-col font-sans w-full overflow-hidden relative transition-colors duration-300`}>
+    <div className={`app-shell ${isDarkMode ? 'theme-dark' : 'theme-light'} min-h-screen flex flex-col font-sans w-full overflow-hidden relative transition-colors duration-300`}>
       <AnimatePresence mode="wait">
         {showLoader && (
           <motion.div
@@ -823,7 +832,7 @@ export default function App() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.26, ease: 'easeOut' }}
-          className="flex w-full max-w-[382px] items-end gap-2"
+          className="flex w-full max-w-[372px] items-end gap-2"
         >
           <div className="mobile-dock relative flex h-[74px] flex-1 items-end justify-between overflow-visible rounded-full border border-white/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(255,255,255,0.64)_48%,rgba(245,247,251,0.82)_100%)] px-[8px] pb-[7px] pt-[8px] shadow-[0_18px_38px_rgba(15,23,42,0.16),0_8px_18px_rgba(255,255,255,0.42)_inset] backdrop-blur-[28px]">
             <span className="pointer-events-none absolute inset-[1px] rounded-full border border-white/70" />
