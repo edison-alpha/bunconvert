@@ -5,9 +5,15 @@ interface ConversionBeamLoaderProps {
   progress: number;
   fileCount: number;
   fileNames: string[];
+  isDarkMode?: boolean;
 }
 
-export default function ConversionBeamLoader({ progress, fileCount, fileNames }: ConversionBeamLoaderProps) {
+export default function ConversionBeamLoader({
+  progress,
+  fileCount,
+  fileNames,
+  isDarkMode = false
+}: ConversionBeamLoaderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sourceRef = useRef<HTMLDivElement>(null);
   const targetRef = useRef<HTMLDivElement>(null);
@@ -17,20 +23,39 @@ export default function ConversionBeamLoader({ progress, fileCount, fileNames }:
     <div className="py-4 sm:py-5">
       <div className="mx-auto flex w-full max-w-[500px] flex-col items-center">
         <div
-          className="relative mx-auto flex w-full items-center justify-center overflow-hidden rounded-[28px] border border-slate-200/90 bg-neutral-50/95 p-2 shadow-[0_24px_60px_-30px_rgba(15,23,42,0.45)] backdrop-blur-xl sm:p-4 lg:p-10"
+          className={`relative mx-auto flex w-full items-center justify-center overflow-hidden rounded-[28px] border p-2 backdrop-blur-xl sm:p-4 lg:p-10 ${
+            isDarkMode
+              ? 'border-slate-700/75 bg-slate-900/88 shadow-[0_26px_60px_-30px_rgba(2,6,23,0.85)]'
+              : 'border-slate-200/90 bg-neutral-50/95 shadow-[0_24px_60px_-30px_rgba(15,23,42,0.45)]'
+          }`}
           ref={containerRef}
         >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.08),transparent_65%)]" />
+          <div
+            className={`absolute inset-0 ${
+              isDarkMode
+                ? 'bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.22),transparent_72%)]'
+                : 'bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.08),transparent_65%)]'
+            }`}
+          />
           <div className="relative flex h-full w-full flex-col items-stretch justify-between gap-10">
             <div className="flex flex-row items-center justify-between">
-              <Circle ref={sourceRef} className="h-12 w-12 sm:h-14 sm:w-14">
+              <Circle
+                ref={sourceRef}
+                className={`h-12 w-12 sm:h-14 sm:w-14 ${
+                  isDarkMode
+                    ? 'border-slate-700/90 bg-slate-900 text-slate-100 shadow-[0_0_24px_-14px_rgba(59,130,246,0.55)]'
+                    : ''
+                }`}
+              >
                 <Icons.user />
               </Circle>
               <div ref={targetRef} className="z-10 flex items-center justify-center">
                 <img
                   src="/brand.png"
                   alt="BUNCONVERT"
-                  className="h-12 w-12 rounded-full object-cover sm:h-14 sm:w-14"
+                  className={`h-12 w-12 rounded-full object-cover sm:h-14 sm:w-14 ${
+                    isDarkMode ? 'ring-2 ring-slate-700/85' : ''
+                  }`}
                 />
               </div>
             </div>
@@ -45,11 +70,12 @@ export default function ConversionBeamLoader({ progress, fileCount, fileNames }:
             curvature={-20}
             dotted
             dotSpacing={7}
-            pathOpacity={0.16}
+            pathOpacity={isDarkMode ? 0.28 : 0.16}
             duration={4.8}
             delay={0.2}
-            gradientStartColor="#2563EB"
-            gradientStopColor="#60A5FA"
+            pathColor={isDarkMode ? '#64748B' : '#94A3B8'}
+            gradientStartColor={isDarkMode ? '#3B82F6' : '#2563EB'}
+            gradientStopColor={isDarkMode ? '#93C5FD' : '#60A5FA'}
           />
           <AnimatedBeam
             containerRef={containerRef}
@@ -61,21 +87,32 @@ export default function ConversionBeamLoader({ progress, fileCount, fileNames }:
             reverse
             dotted
             dotSpacing={7}
-            pathOpacity={0.16}
+            pathOpacity={isDarkMode ? 0.28 : 0.16}
             duration={4.5}
             delay={0.5}
-            gradientStartColor="#1E40AF"
-            gradientStopColor="#93C5FD"
+            pathColor={isDarkMode ? '#64748B' : '#94A3B8'}
+            gradientStartColor={isDarkMode ? '#1D4ED8' : '#1E40AF'}
+            gradientStopColor={isDarkMode ? '#BFDBFE' : '#93C5FD'}
           />
         </div>
 
-        <div className="mt-5 w-full rounded-[24px] border border-slate-200/80 bg-white/65 px-4 py-4 shadow-[0_20px_40px_-28px_rgba(15,23,42,0.35)] backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-3 text-[12px] font-semibold text-slate-500 sm:text-[13px]">
+        <div
+          className={`mt-5 w-full rounded-[24px] border px-4 py-4 backdrop-blur-xl ${
+            isDarkMode
+              ? 'border-slate-700/75 bg-slate-900/62 shadow-[0_20px_44px_-28px_rgba(2,6,23,0.7)]'
+              : 'border-slate-200/80 bg-white/65 shadow-[0_20px_40px_-28px_rgba(15,23,42,0.35)]'
+          }`}
+        >
+          <div
+            className={`flex items-center justify-between gap-3 text-[12px] font-semibold sm:text-[13px] ${
+              isDarkMode ? 'text-slate-300' : 'text-slate-500'
+            }`}
+          >
             <span>Converting {fileCount} {fileCount === 1 ? 'file' : 'files'}</span>
-            <span className="text-[#1E40AF]">{progress}% completed</span>
+            <span className={isDarkMode ? 'text-blue-300' : 'text-[#1E40AF]'}>{progress}% completed</span>
           </div>
 
-          <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-200/70">
+          <div className={`mt-2 h-2.5 overflow-hidden rounded-full ${isDarkMode ? 'bg-slate-700/70' : 'bg-slate-200/70'}`}>
             <div
               className="h-full rounded-full bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#22C55E] shadow-[0_4px_14px_rgba(37,99,235,0.28)] transition-all duration-300 ease-linear"
               style={{ width: `${progress}%` }}
@@ -86,14 +123,24 @@ export default function ConversionBeamLoader({ progress, fileCount, fileNames }:
             {visibleNames.map((name) => (
               <span
                 key={name}
-                className="max-w-full truncate rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-[11px] font-medium text-slate-600 sm:text-[12px]"
+                className={`max-w-full truncate rounded-full border px-3 py-1.5 text-[11px] font-medium sm:text-[12px] ${
+                  isDarkMode
+                    ? 'border-slate-700 bg-slate-800/72 text-slate-200'
+                    : 'border-slate-200 bg-white/70 text-slate-600'
+                }`}
               >
                 {name}
               </span>
             ))}
 
             {fileCount > visibleNames.length && (
-              <span className="rounded-full border border-dashed border-slate-300 bg-white/40 px-3 py-1.5 text-[11px] font-semibold text-[#1E40AF] sm:text-[12px]">
+              <span
+                className={`rounded-full border border-dashed px-3 py-1.5 text-[11px] font-semibold sm:text-[12px] ${
+                  isDarkMode
+                    ? 'border-slate-600 bg-slate-800/55 text-blue-300'
+                    : 'border-slate-300 bg-white/40 text-[#1E40AF]'
+                }`}
+              >
                 +{fileCount - visibleNames.length} more
               </span>
             )}

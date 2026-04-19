@@ -4,6 +4,7 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+  --ease-out-expo: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 body {
@@ -317,6 +318,11 @@ body.theme-dark {
 
 .app-shell.theme-dark .add-files-btn:hover {
   background: #1e2a42 !important;
+}
+
+.app-shell.theme-dark .add-files-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35) !important;
 }
 
 .app-shell.theme-dark .converter-card .hover\:bg-gray-50:hover {
