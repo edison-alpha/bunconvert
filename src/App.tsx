@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Bell, ChevronDown, Zap, X, File, Image as ImageIcon, Video, Music, Archive, RefreshCw, MoreHorizontal, CheckCircle2, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import brandLogo from './assets/img/brand.png';
 
 interface FileItem {
   id: string;
@@ -205,7 +206,7 @@ export default function App() {
         {/* Left Logo / Brand */}
         <div className="pointer-events-auto pt-1 sm:pl-2">
           <div className="flex items-center space-x-3">
-            <img src="/src/assets/img/brand.png" alt="BUNCONVERT" className="h-10 w-10 object-cover rounded-full" />
+            <img src={brandLogo} alt="BUNCONVERT" className="h-10 w-10 object-cover rounded-full" />
             <span className="font-bold text-[20px] text-gray-900 tracking-tight">BUNCONVERT</span>
           </div>
         </div>
