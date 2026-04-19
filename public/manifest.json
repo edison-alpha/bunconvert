@@ -7,6 +7,7 @@
   "background_color": "#E2ECFA",
   "theme_color": "#3A63F5",
   "orientation": "portrait-primary",
+  "scope": "/",
   "icons": [
     {
       "src": "/icon-192x192.png",
@@ -19,8 +20,29 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/brand.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "badge"
     }
   ],
   "categories": ["utilities", "productivity"],
-  "screenshots": []
+  "screenshots": [],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Convert Files",
+      "short_name": "Convert",
+      "description": "Start converting files",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
 }

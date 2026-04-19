@@ -17,6 +17,50 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
+// Push notification event
+self.addEventListener('push', (event) => {
+  const options = {
+    body: event.data ? event.data.text() : 'Your files have been converted successfully!',
+    icon: '/brand.png',
+    badge: '/brand.png',
+    vibrate: [200, 100, 200],
+    tag: 'conversion-complete',
+    requireInteraction: false,
+    actions: [
+      {
+        action: 'open',
+        title: 'Open App'
+      }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification('BUNCONVERT', options)
+  );
+});
+
+// Notification click event
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        // If app is already open, focus it
+        for (let i = 0; i < clientList.length; i++) {
+          const client = clientList[i];
+          if (client.url === '/' && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        // Otherwise open new window
+        if (clients.openWindow) {
+          return clients.openWindow('/');
+        }
+      })
+  );
+});
+
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
   // Skip caching for non-HTTP/HTTPS requests (chrome-extension, etc.)

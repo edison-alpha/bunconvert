@@ -109,15 +109,46 @@ export default function App() {
     }
   }, [previewItem, converting]);
 
-  const showNotification = () => {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('BUNCONVERT', {
-        body: 'Your files have been converted successfully!',
-        icon: '/brand.png',
-        badge: '/brand.png',
-        tag: 'conversion-complete',
-        requireInteraction: false
-      });
+  const showNotification = async () => {
+    // Check if service worker and notifications are supported
+    if (!('serviceWorker' in navigator) || !('Notification' in window)) {
+      return;
+    }
+
+    // Request permission if not granted
+    if (Notification.permission === 'default') {
+      await Notification.requestPermission();
+    }
+
+    if (Notification.permission === 'granted') {
+      try {
+        // Try to use service worker notification (native-like)
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification('BUNCONVERT', {
+          body: 'Your files have been converted successfully!',
+          icon: '/brand.png',
+          badge: '/brand.png',
+          vibrate: [200, 100, 200],
+          tag: 'conversion-complete',
+          requireInteraction: false,
+          actions: [
+            {
+              action: 'open',
+              title: 'Open'
+            }
+          ]
+        });
+      } catch (error) {
+        // Fallback to regular notification
+        console.log('Service worker notification failed, using fallback');
+        new Notification('BUNCONVERT', {
+          body: 'Your files have been converted successfully!',
+          icon: '/brand.png',
+          badge: '/brand.png',
+          tag: 'conversion-complete',
+          requireInteraction: false
+        });
+      }
     }
   };
 
