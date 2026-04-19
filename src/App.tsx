@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Bell, ChevronDown, Zap, X, File, Image as ImageIcon, Video, Music, Archive, RefreshCw, MoreHorizontal, CheckCircle2, Download } from 'lucide-react';
+import { Plus, Zap, X, File, Image as ImageIcon, Video, Music, Archive, RefreshCw, MoreHorizontal, CheckCircle2, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import brandLogo from './assets/img/brand.png';
 
@@ -49,6 +49,25 @@ export default function App() {
   const [isDragging, setIsDragging] = useState(false);
   const [activeTab, setActiveTab] = useState<'convert' | 'history'>('convert');
   const [history, setHistory] = useState<HistoryItem[]>([]);
+
+  // Request notification permission on mount
+  React.useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  const showNotification = () => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('BUNCONVERT', {
+        body: 'Your files have been converted successfully!',
+        icon: '/brand.png',
+        badge: '/brand.png',
+        tag: 'conversion-complete',
+        requireInteraction: false
+      });
+    }
+  };
 
   const processFiles = (fileList: FileList | File[]) => {
     if (done) setDone(false);
@@ -195,42 +214,26 @@ export default function App() {
         setConverting(false);
         setDone(true);
         setFiles(prev => prev.map(f => ({ ...f, status: 'done', progress: 100 })));
+        showNotification();
       }
     }, 150);
   };
 
   return (
     <div className="min-h-screen bg-[#E2ECFA] flex flex-col font-sans w-full overflow-hidden relative">
+      {/* Floating Login Button - Fixed at bottom */}
+      <button className="fixed bottom-6 left-1/2 -translate-x-1/2 sm:bottom-8 z-50 bg-white/20 backdrop-blur-xl border border-white/30 text-gray-900 rounded-full px-6 py-3 sm:px-8 sm:py-4 font-bold text-[13px] sm:text-[14px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] hover:bg-white/30 hover:shadow-[0_12px_40px_rgba(0,0,0,0.16)] transition-all duration-300 hover:scale-105 active:scale-95">
+        Login
+      </button>
+
       {/* Top Navbar */}
-      <header className="absolute w-full top-0 left-0 p-6 flex justify-between items-center z-50 pointer-events-none">
+      <header className="absolute w-full top-0 left-0 p-6 flex justify-start items-center z-50 pointer-events-none">
         {/* Left Logo / Brand */}
         <div className="pointer-events-auto pt-1 sm:pl-2">
           <div className="flex items-center space-x-3">
             <img src={brandLogo} alt="BUNCONVERT" className="h-10 w-10 object-cover rounded-full" />
             <span className="font-bold text-[20px] text-gray-900 tracking-tight">BUNCONVERT</span>
           </div>
-        </div>
-        
-        {/* Right Nav Links */}
-        <div className="flex items-center space-x-3 pointer-events-auto">
-          <div className="hidden lg:flex bg-white rounded-full px-6 py-3 items-center space-x-6 text-[13px] font-bold shadow-sm text-gray-800 border border-gray-100">
-             <button className="flex items-center hover:text-gray-500 transition-colors">Features <ChevronDown className="w-3 h-3 ml-1.5 stroke-[3] opacity-60"/></button>
-             <button className="hover:text-gray-500 transition-colors">Pricing</button>
-             <button className="flex items-center hover:text-gray-500 transition-colors">Use cases <ChevronDown className="w-3 h-3 ml-1.5 stroke-[3] opacity-60"/></button>
-             <button className="flex items-center hover:text-gray-500 transition-colors">Resources <ChevronDown className="w-3 h-3 ml-1.5 stroke-[3] opacity-60"/></button>
-             <button className="hover:text-gray-500 transition-colors">What's new</button>
-             <button className="hover:text-gray-500 transition-colors">Sign</button>
-          </div>
-          <button className="hidden sm:block bg-white rounded-full px-6 py-3 items-center text-[13px] font-bold shadow-sm hover:bg-gray-50 transition-colors text-gray-800 border border-gray-100">
-             Log in
-          </button>
-          <button className="bg-[#1C1D1F] text-white rounded-full px-6 py-3 items-center text-[13px] font-bold shadow-sm cursor-pointer hover:bg-black transition-colors">
-             Sign up
-          </button>
-          <button className="bg-white rounded-full w-11 h-11 flex items-center justify-center shadow-sm relative cursor-pointer hover:bg-gray-50 transition-colors border border-gray-100">
-             <Bell className="w-5 h-5 text-gray-700" strokeWidth={2.5} />
-             <span className="absolute top-0 right-0 bg-[#3A63F5] text-white text-[10px] font-bold w-[18px] h-[18px] rounded-full flex items-center justify-center translate-x-1.5 -translate-y-1.5 border-2 border-white">3</span>
-          </button>
         </div>
       </header>
 

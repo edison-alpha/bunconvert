@@ -1,0 +1,26 @@
+{
+  "name": "BUNCONVERT - Free Online File Converter",
+  "short_name": "BUNCONVERT",
+  "description": "Convert your files easily and quickly. Free online file converter by NGDKLabs.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#E2ECFA",
+  "theme_color": "#3A63F5",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "screenshots": []
+}
