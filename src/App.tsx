@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Zap, X, File, Image as ImageIcon, Video, Music, Archive, RefreshCw, MoreHorizontal, CheckCircle2, Download, Bell, ChevronDown, History, Coffee, UserRound, ArrowLeftRight, Search } from 'lucide-react';
+import { Plus, Zap, X, File, Image as ImageIcon, Video, Music, Archive, RefreshCw, MoreHorizontal, CheckCircle2, Download, Bell, ChevronDown, History, Coffee, UserRound, ArrowLeftRight, Search, Moon, Sun } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import brandLogo from './assets/img/brand.png';
 import ConversionBeamLoader from './components/ConversionBeamLoader';
@@ -65,6 +65,10 @@ export default function App() {
   const [previewItem, setPreviewItem] = useState<HistoryItem | null>(null);
   const [showLoader, setShowLoader] = useState(true);
   const [showMobileProfile, setShowMobileProfile] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem('bunconvert-theme') === 'dark';
+  });
 
   // Request notification permission on mount
   useEffect(() => {
@@ -72,6 +76,10 @@ export default function App() {
       Notification.requestPermission();
     }
   }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem('bunconvert-theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -396,7 +404,7 @@ export default function App() {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-[#E2ECFA] flex flex-col font-sans w-full overflow-hidden relative">
+    <div className={`app-shell ${isDarkMode ? 'theme-dark bg-[#0B1220]' : 'theme-light bg-[#E2ECFA]'} min-h-screen flex flex-col font-sans w-full overflow-hidden relative transition-colors duration-300`}>
       <AnimatePresence mode="wait">
         {showLoader && (
           <motion.div
@@ -428,32 +436,46 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      <button
+        type="button"
+        onClick={() => setIsDarkMode(prev => !prev)}
+        className={`fixed right-4 top-5 z-[120] flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-300 sm:right-6 sm:top-6 ${
+          isDarkMode
+            ? 'border-slate-600/80 bg-slate-900/85 text-amber-300 shadow-[0_10px_24px_rgba(0,0,0,0.38)]'
+            : 'border-white/80 bg-white/85 text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.16)]'
+        }`}
+        aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+        title={isDarkMode ? 'Light mode' : 'Dark mode'}
+      >
+        {isDarkMode ? <Sun className="h-[18px] w-[18px]" strokeWidth={2.35} /> : <Moon className="h-[18px] w-[18px]" strokeWidth={2.35} />}
+      </button>
+
       {/* Top Navbar */}
       <header className="fixed sm:absolute w-full top-4 sm:top-0 left-0 z-50 pointer-events-none">
         {/* Mobile Navbar - Centered with Login */}
         <div className="sm:hidden flex justify-center px-4 pointer-events-auto">
-          <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-xl rounded-full px-3 py-2 shadow-lg border border-white/40">
+          <div className="mobile-top-pill flex items-center space-x-2 bg-white/80 backdrop-blur-xl rounded-full px-3 py-2 shadow-lg border border-white/40">
             <img src={brandLogo} alt="BUNCONVERT" className="h-8 w-8 object-cover rounded-full" />
-            <span className="font-bold text-[16px] text-gray-900 tracking-tight">BUNCONVERT</span>
-            <div className="w-px h-5 bg-gray-300 mx-1"></div>
-            <button className="bg-gradient-to-br from-[#2563EB] to-[#1E40AF] text-white rounded-full px-4 py-1.5 font-bold text-[12px] hover:from-[#1E40AF] hover:to-[#1E3A8A] transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-600/40 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/20 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity">
+            <span className="brand-text font-bold text-[16px] text-gray-900 tracking-tight">BUNCONVERT</span>
+            <div className="brand-divider w-px h-5 bg-gray-300 mx-1"></div>
+            <button className="top-nav-login-btn bg-gradient-to-br from-[#2563EB] to-[#1E40AF] text-white rounded-full px-4 py-1.5 font-bold text-[12px] hover:from-[#1E40AF] hover:to-[#1E3A8A] transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-600/40 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/20 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity">
               Login
             </button>
           </div>
         </div>
         
         {/* Desktop Navbar - Compact */}
-        <div className="hidden sm:flex lg:hidden items-center justify-between gap-3 px-12 pt-5 pointer-events-auto">
+        <div className="top-nav-compact hidden sm:flex lg:hidden items-center justify-between gap-3 px-12 pt-5 pointer-events-auto">
           <div className="flex items-center gap-3">
             <img src={brandLogo} alt="BUNCONVERT" className="h-9 w-9 object-cover rounded-full shadow-[0_6px_18px_rgba(15,23,42,0.14)]" />
-            <span className="font-bold text-[18px] text-gray-900 tracking-tight">BUNCONVERT</span>
+            <span className="brand-text font-bold text-[18px] text-gray-900 tracking-tight">BUNCONVERT</span>
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="rounded-full bg-[#1A1A1A] px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_8px_24px_rgba(15,23,42,0.16)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-black hover:shadow-[0_12px_30px_rgba(15,23,42,0.22)]">
+            <button className="top-nav-signup-btn rounded-full bg-[#1A1A1A] px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_8px_24px_rgba(15,23,42,0.16)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-black hover:shadow-[0_12px_30px_rgba(15,23,42,0.22)]">
               Sign up
             </button>
-            <button className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#d8dce6] bg-white/90 text-[#111827] shadow-[0_4px_18px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.12)]">
+            <button className="top-nav-icon-btn relative flex h-10 w-10 items-center justify-center rounded-full border border-[#d8dce6] bg-white/90 text-[#111827] shadow-[0_4px_18px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.12)]">
               <Bell className="h-4 w-4" strokeWidth={2.2} />
               <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#3B5BFF] px-1 text-[9px] font-bold leading-none text-white">
                 3
@@ -463,14 +485,14 @@ export default function App() {
         </div>
 
         {/* Desktop Navbar - Full */}
-        <div className="hidden lg:flex items-center justify-between gap-4 px-16 xl:px-24 pt-5 pointer-events-auto">
+        <div className="top-nav-full hidden lg:flex items-center justify-between gap-4 px-16 xl:px-24 pt-5 pointer-events-auto">
           <div className="flex shrink-0 items-center gap-3">
             <img src={brandLogo} alt="BUNCONVERT" className="h-10 w-10 object-cover rounded-full shadow-[0_6px_18px_rgba(15,23,42,0.14)]" />
-            <span className="font-bold text-[18px] text-gray-900 tracking-tight">BUNCONVERT</span>
+            <span className="brand-text font-bold text-[18px] text-gray-900 tracking-tight">BUNCONVERT</span>
           </div>
 
           <div className="flex min-w-0 flex-1 items-center justify-end gap-3 xl:gap-4">
-            <nav className="flex items-center gap-1 rounded-full border border-[#d8dce6] bg-white/90 px-5 py-2.5 text-[#111827] shadow-[0_4px_18px_rgba(15,23,42,0.08)] backdrop-blur-xl xl:px-6 xl:py-3">
+            <nav className="top-nav-links flex items-center gap-1 rounded-full border border-[#d8dce6] bg-white/90 px-5 py-2.5 text-[#111827] shadow-[0_4px_18px_rgba(15,23,42,0.08)] backdrop-blur-xl xl:px-6 xl:py-3">
               {desktopNavItems.map(({ label, hasChevron }) => (
                 <button
                   key={label}
@@ -483,10 +505,10 @@ export default function App() {
             </nav>
 
             <div className="flex shrink-0 items-center gap-2">
-              <button className="rounded-full bg-[#1A1A1A] px-6 py-3 text-[14px] font-semibold text-white shadow-[0_8px_24px_rgba(15,23,42,0.16)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-black hover:shadow-[0_12px_30px_rgba(15,23,42,0.22)]">
+              <button className="top-nav-signup-btn rounded-full bg-[#1A1A1A] px-6 py-3 text-[14px] font-semibold text-white shadow-[0_8px_24px_rgba(15,23,42,0.16)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-black hover:shadow-[0_12px_30px_rgba(15,23,42,0.22)]">
                 Sign up
               </button>
-              <button className="relative flex h-11 w-11 items-center justify-center rounded-full border border-[#d8dce6] bg-white/90 text-[#111827] shadow-[0_4px_18px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.12)]">
+              <button className="top-nav-icon-btn relative flex h-11 w-11 items-center justify-center rounded-full border border-[#d8dce6] bg-white/90 text-[#111827] shadow-[0_4px_18px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.12)]">
                 <Bell className="h-4 w-4" strokeWidth={2.2} />
                 <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#3B5BFF] px-1 text-[9px] font-bold leading-none text-white">
                   3
@@ -505,39 +527,39 @@ export default function App() {
           <div className="relative w-full max-w-[340px] shrink-0 flex flex-col">
             {/* Title above card */}
             <div className="mb-4 sm:mb-6 text-center">
-              <h1 className="font-serif text-[28px] sm:text-[36px] tracking-tighter text-gray-900 leading-[0.9]">BUNCONVERT</h1>
+              <h1 className="converter-title font-serif text-[28px] sm:text-[36px] tracking-tighter text-gray-900 leading-[0.9]">BUNCONVERT</h1>
               <p className="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] to-[#1E40AF] text-[11px] sm:text-[13px] mt-1.5 sm:mt-2 font-bold tracking-wider uppercase drop-shadow-sm">by NGDKLabs</p>
             </div>
             {/* Background tab to mimic layering */}
-            <div className="mx-4 h-10 flex rounded-t-3xl border border-[#dce5f3] border-b-0 -mb-4 z-0 overflow-hidden text-[10px] font-bold uppercase tracking-[0.1em]">
+            <div className="converter-tabs mx-4 h-10 flex rounded-t-3xl border border-[#dce5f3] border-b-0 -mb-4 z-0 overflow-hidden text-[10px] font-bold uppercase tracking-[0.1em]">
                <button 
-                 onClick={() => setActiveTab('convert')}
-                 className={`flex-1 flex justify-center pt-2 transition-colors ${activeTab === 'convert' ? 'bg-[#E2EAF6] text-gray-500 cursor-default' : 'bg-white/50 text-gray-400 hover:bg-[#E2EAF6]/50'}`}
+                  onClick={() => setActiveTab('convert')}
+                 className={`converter-tab-button ${activeTab === 'convert' ? 'active' : ''} flex-1 flex justify-center pt-2 transition-colors ${activeTab === 'convert' ? 'bg-[#E2EAF6] text-gray-500 cursor-default' : 'bg-white/50 text-gray-400 hover:bg-[#E2EAF6]/50'}`}
                >
-                 Conversion
+                  Conversion
                </button>
                <button 
-                 onClick={() => setActiveTab('history')}
-                 className={`flex-1 flex justify-center pt-2 transition-colors ${activeTab === 'history' ? 'bg-[#E2EAF6] text-gray-500 cursor-default' : 'bg-white/50 text-gray-400 hover:bg-[#E2EAF6]/50'}`}
+                  onClick={() => setActiveTab('history')}
+                 className={`converter-tab-button ${activeTab === 'history' ? 'active' : ''} flex-1 flex justify-center pt-2 transition-colors ${activeTab === 'history' ? 'bg-[#E2EAF6] text-gray-500 cursor-default' : 'bg-white/50 text-gray-400 hover:bg-[#E2EAF6]/50'}`}
                >
-                 History
+                  History
                </button>
             </div>
             
             {/* Main Card */}
             <div 
-              className={`bg-white rounded-[32px] shadow-[0_12px_40px_rgb(0,0,0,0.08)] overflow-hidden flex flex-col z-10 h-auto max-h-[65vh] sm:max-h-[70vh] transition-all duration-300 relative ${isDragging && activeTab === 'convert' ? 'ring-4 ring-blue-500 scale-[1.02]' : ''}`}
+              className={`converter-card bg-white rounded-[32px] shadow-[0_12px_40px_rgb(0,0,0,0.08)] overflow-hidden flex flex-col z-10 h-auto max-h-[65vh] sm:max-h-[70vh] transition-all duration-300 relative ${isDragging && activeTab === 'convert' ? 'ring-4 ring-blue-500 scale-[1.02]' : ''}`}
               onDragOver={activeTab === 'convert' ? handleDragOver : undefined}
               onDragLeave={activeTab === 'convert' ? handleDragLeave : undefined}
               onDrop={activeTab === 'convert' ? handleDrop : undefined}
             >
               {isDragging && activeTab === 'convert' && (
-                <div className="absolute inset-0 bg-blue-800/10 backdrop-blur-sm z-50 flex items-center justify-center pointer-events-none rounded-[32px]">
-                  <div className="bg-white px-6 py-4 rounded-2xl shadow-xl flex items-center space-x-3">
+                <div className="drop-overlay absolute inset-0 bg-blue-800/10 backdrop-blur-sm z-50 flex items-center justify-center pointer-events-none rounded-[32px]">
+                  <div className="drop-overlay-card bg-white px-6 py-4 rounded-2xl shadow-xl flex items-center space-x-3">
                      <div className="w-10 h-10 bg-blue-900 text-white rounded-full flex items-center justify-center">
                        <Plus className="w-6 h-6" strokeWidth={3} />
                      </div>
-                     <span className="text-blue-600 font-bold text-lg">Drop files here to add</span>
+                     <span className="drop-overlay-text text-blue-600 font-bold text-lg">Drop files here to add</span>
                   </div>
                 </div>
               )}
@@ -547,7 +569,7 @@ export default function App() {
                   <div className="p-4 flex pb-2 shrink-0">
                     <button 
                       onClick={() => document.getElementById('file-upload')?.click()}
-                      className="w-full bg-[#F1F4FA] rounded-3xl py-4 flex flex-col items-center justify-center transition-colors hover:bg-[#E4EBF5] relative group"
+                      className="add-files-btn w-full bg-[#F1F4FA] rounded-3xl py-4 flex flex-col items-center justify-center transition-colors hover:bg-[#E4EBF5] relative group"
                     >
                       <div className="w-[34px] h-[34px] rounded-full bg-gradient-to-br from-[#2563EB] to-[#1E40AF] text-white flex items-center justify-center mb-2 shadow-lg shadow-blue-500/40 group-hover:scale-105 group-hover:shadow-xl group-hover:shadow-blue-600/50 transition-all relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/30 before:to-transparent before:opacity-60">
                         <Plus className="w-5 h-5 relative z-10" strokeWidth={2.5} />
@@ -560,7 +582,7 @@ export default function App() {
 
                   <div className="px-5 py-2.5 flex justify-between items-center bg-white border-b border-gray-100/60 shrink-0">
                     <span className="text-[12.5px] text-gray-500 font-medium tracking-tight">Convert up to 2GB free</span>
-                    <button className="text-[12.5px] font-bold text-[#b54bba] flex items-center hover:text-[#953e9a] transition-colors">
+                    <button className="increase-limit-btn text-[12.5px] font-bold text-[#b54bba] flex items-center hover:text-[#953e9a] transition-colors">
                       <Zap className="w-3.5 h-3.5 mr-1" fill="currentColor" /> Increase limit
                     </button>
                   </div>
@@ -670,13 +692,13 @@ export default function App() {
 
                   {/* Footer Area */}
                   <div className="p-5 flex items-center justify-between border-t border-gray-50 bg-white shrink-0 shadow-[0_-4px_10px_rgb(0,0,0,0.02)]">
-                    <button className="w-[42px] h-[42px] rounded-2xl border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors shrink-0">
+                    <button className="more-action-btn w-[42px] h-[42px] rounded-2xl border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors shrink-0">
                       <MoreHorizontal className="w-5 h-5 text-gray-800" strokeWidth={2.5} />
                     </button>
                     <button 
                       onClick={handleAction}
                       disabled={converting || (!done && files.length === 0)}
-                      className={`flex-1 ml-3 font-bold text-[15px] rounded-full py-3.5 transition-all outline-none flex items-center justify-center relative overflow-hidden
+                      className={`convert-main-btn flex-1 ml-3 font-bold text-[15px] rounded-full py-3.5 transition-all outline-none flex items-center justify-center relative overflow-hidden
                         ${done ? 'bg-[#1C1D1F] text-white hover:bg-black shadow-lg shadow-black/10' : 
                           files.length > 0 ? 'bg-gradient-to-br from-[#2563EB] to-[#1E40AF] text-white hover:from-[#1E40AF] hover:to-[#1E3A8A] shadow-xl shadow-blue-500/40 hover:shadow-2xl hover:shadow-blue-600/50 before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/20 before:to-transparent before:opacity-60' : 
                           'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
@@ -701,7 +723,7 @@ export default function App() {
                  <div className="flex flex-col h-full bg-white flex-1 animate-in fade-in duration-300">
                     <div className="p-5 border-b border-gray-50 shrink-0 bg-gray-50/50 flex justify-between items-center">
                        <h3 className="font-bold text-gray-800">Conversion History</h3>
-                       <span className="text-[12px] font-medium text-gray-500 bg-white px-2 py-0.5 rounded shadow-sm border border-gray-100">{history.length} items</span>
+                       <span className="history-count-badge text-[12px] font-medium text-gray-500 bg-white px-2 py-0.5 rounded shadow-sm border border-gray-100">{history.length} items</span>
                     </div>
                     <div className="px-5 divide-y divide-gray-100 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 flex-1 min-h-[300px]">
                       {history.length === 0 ? (
@@ -746,7 +768,7 @@ export default function App() {
                                   </div>
                                   <button 
                                     onClick={() => downloadHistoryItem(item)}
-                                    className="w-[34px] h-[34px] rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 text-[#1E40AF] flex items-center justify-center hover:from-[#2563EB] hover:to-[#1E40AF] hover:text-white transition-all shrink-0 shadow-md hover:shadow-lg hover:shadow-blue-400/40 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/40 before:to-transparent before:opacity-100 hover:before:opacity-0 before:transition-opacity"
+                                    className="history-download-btn w-[34px] h-[34px] rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 text-[#1E40AF] flex items-center justify-center hover:from-[#2563EB] hover:to-[#1E40AF] hover:text-white transition-all shrink-0 shadow-md hover:shadow-lg hover:shadow-blue-400/40 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/40 before:to-transparent before:opacity-100 hover:before:opacity-0 before:transition-opacity"
                                     title="Download again"
                                   >
                                     <Download className="w-4 h-4 relative z-10" strokeWidth={2.5} />
@@ -772,7 +794,7 @@ export default function App() {
           transition={{ duration: 0.26, ease: 'easeOut' }}
           className="flex w-full max-w-[382px] items-end gap-2"
         >
-          <div className="relative flex h-[74px] flex-1 items-end justify-between overflow-visible rounded-full border border-white/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(255,255,255,0.64)_48%,rgba(245,247,251,0.82)_100%)] px-[8px] pb-[7px] pt-[8px] shadow-[0_18px_38px_rgba(15,23,42,0.16),0_8px_18px_rgba(255,255,255,0.42)_inset] backdrop-blur-[28px]">
+          <div className="mobile-dock relative flex h-[74px] flex-1 items-end justify-between overflow-visible rounded-full border border-white/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(255,255,255,0.64)_48%,rgba(245,247,251,0.82)_100%)] px-[8px] pb-[7px] pt-[8px] shadow-[0_18px_38px_rgba(15,23,42,0.16),0_8px_18px_rgba(255,255,255,0.42)_inset] backdrop-blur-[28px]">
             <span className="pointer-events-none absolute inset-[1px] rounded-full border border-white/70" />
             <span className="pointer-events-none absolute left-7 right-7 top-[5px] h-[16px] rounded-full bg-white/65 blur-md" />
             <span className="pointer-events-none absolute inset-x-10 bottom-[3px] h-[14px] rounded-full bg-slate-300/20 blur-lg" />
@@ -824,7 +846,7 @@ export default function App() {
             type="button"
             onClick={handleMobileSearch}
             whileTap={{ scale: 0.95 }}
-            className="relative z-10 mb-[10px] flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full border border-white/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.97)_0%,rgba(247,248,251,0.96)_100%)] text-[#4B5563] shadow-[0_12px_26px_rgba(15,23,42,0.2),0_5px_12px_rgba(255,255,255,0.42)_inset]"
+            className="mobile-search-btn relative z-10 mb-[10px] flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full border border-white/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.97)_0%,rgba(247,248,251,0.96)_100%)] text-[#4B5563] shadow-[0_12px_26px_rgba(15,23,42,0.2),0_5px_12px_rgba(255,255,255,0.42)_inset]"
             aria-label="Search"
             title="Search"
           >
@@ -841,7 +863,7 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[85] bg-slate-950/20 backdrop-blur-sm sm:hidden"
+              className="mobile-profile-overlay fixed inset-0 z-[85] bg-slate-950/20 backdrop-blur-sm sm:hidden"
               onClick={() => setShowMobileProfile(false)}
               aria-label="Close profile panel"
             />
@@ -853,12 +875,12 @@ export default function App() {
               transition={{ duration: 0.28, ease: 'easeOut' }}
               className="fixed inset-x-0 bottom-0 z-[90] px-3 pb-3 sm:hidden"
             >
-              <div className="overflow-hidden rounded-[32px] border border-white/60 bg-white/55 shadow-[0_-16px_44px_rgba(15,23,42,0.22)] backdrop-blur-3xl">
+              <div className="mobile-profile-sheet overflow-hidden rounded-[32px] border border-white/60 bg-white/55 shadow-[0_-16px_44px_rgba(15,23,42,0.22)] backdrop-blur-3xl">
                 <div className="flex justify-center pt-3">
                   <div className="h-1.5 w-14 rounded-full bg-slate-300/80" />
                 </div>
 
-                <div className="px-5 pb-5 pt-4">
+                <div className="mobile-profile-content px-5 pb-5 pt-4">
                   <div className="mb-4 flex items-start gap-3">
                     <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[22px] bg-gradient-to-br from-[#2563EB] to-[#1E40AF] p-1.5 shadow-[0_12px_24px_rgba(37,99,235,0.35)]">
                       <img src={brandLogo} alt="BUNCONVERT" className="h-full w-full rounded-[18px] object-cover" />
@@ -875,7 +897,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setShowMobileProfile(false)}
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/80 text-slate-600 shadow-[0_8px_18px_rgba(15,23,42,0.08)]"
+                      className="mobile-profile-close-btn flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/80 text-slate-600 shadow-[0_8px_18px_rgba(15,23,42,0.08)]"
                       aria-label="Close profile"
                     >
                       <X className="h-4.5 w-4.5" strokeWidth={2.5} />
@@ -883,20 +905,20 @@ export default function App() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-[24px] bg-[#eff6ff]/90 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+                    <div className="mobile-profile-stat-card rounded-[24px] bg-[#eff6ff]/90 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
                       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">History</p>
                       <p className="mt-2 text-2xl font-bold tracking-tight text-[#1E40AF]">{history.length}</p>
                       <p className="mt-1 text-[12px] font-medium text-slate-500">Saved conversions</p>
                     </div>
 
-                    <div className="rounded-[24px] bg-white/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.82)]">
+                    <div className="mobile-profile-stat-card rounded-[24px] bg-white/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.82)]">
                       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Queue</p>
                       <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{files.length}</p>
                       <p className="mt-1 text-[12px] font-medium text-slate-500">Files ready to convert</p>
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-[28px] bg-[#f8fbff]/90 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.82)]">
+                  <div className="mobile-profile-current-view mt-4 rounded-[28px] bg-[#f8fbff]/90 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.82)]">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Current view</p>
@@ -911,7 +933,7 @@ export default function App() {
                           setActiveTab('history');
                           setShowMobileProfile(false);
                         }}
-                        className="flex-1 rounded-full bg-white px-4 py-3 text-[13px] font-semibold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
+                        className="mobile-profile-secondary-btn flex-1 rounded-full bg-white px-4 py-3 text-[13px] font-semibold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
                       >
                         Open history
                       </button>
@@ -921,7 +943,7 @@ export default function App() {
                           openBuyCoffee();
                           setShowMobileProfile(false);
                         }}
-                        className="flex-1 rounded-full bg-gradient-to-br from-[#2563EB] to-[#1E40AF] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_14px_30px_rgba(37,99,235,0.35)]"
+                        className="mobile-profile-primary-btn flex-1 rounded-full bg-gradient-to-br from-[#2563EB] to-[#1E40AF] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_14px_30px_rgba(37,99,235,0.35)]"
                       >
                         Buy coffee
                       </button>
@@ -936,12 +958,12 @@ export default function App() {
 
       <AnimatePresence>
         {converting && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[160] flex items-center justify-center bg-slate-950/12 px-4 backdrop-blur-md"
-          >
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="conversion-overlay fixed inset-0 z-[160] flex items-center justify-center bg-slate-950/12 px-4 backdrop-blur-md"
+            >
             <motion.div
               initial={{ opacity: 0, y: 18, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -953,8 +975,8 @@ export default function App() {
                 <div className="mb-3 flex items-start justify-between gap-4">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#2563EB]">BUNCONVERT</span>
-                    <h3 className="mt-2 text-xl font-bold text-[#0F172A] sm:text-2xl">Processing your conversion</h3>
-                    <p className="mt-1 text-[13px] font-medium text-slate-500 sm:text-[14px]">
+                    <h3 className="conversion-modal-title mt-2 text-xl font-bold text-[#0F172A] sm:text-2xl">Processing your conversion</h3>
+                    <p className="conversion-modal-desc mt-1 text-[13px] font-medium text-slate-500 sm:text-[14px]">
                       {files.length === 1
                         ? '1 file is being converted. This modal will close automatically when the process finishes.'
                         : `${files.length} files are being converted. This modal will close automatically when the process finishes.`}
@@ -987,14 +1009,14 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+              className="preview-modal bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Preview Header */}
-              <div className="p-4 sm:p-6 border-b border-gray-100 flex items-center justify-between shrink-0">
+              <div className="preview-modal-header p-4 sm:p-6 border-b border-gray-100 flex items-center justify-between shrink-0">
                 <div className="flex-1 min-w-0 pr-4">
-                  <h3 className="font-bold text-gray-900 text-lg truncate">{previewItem.name}</h3>
-                  <div className="flex items-center text-[12px] text-gray-500 font-medium space-x-2 mt-1">
+                  <h3 className="preview-modal-title font-bold text-gray-900 text-lg truncate">{previewItem.name}</h3>
+                  <div className="preview-modal-meta flex items-center text-[12px] text-gray-500 font-medium space-x-2 mt-1">
                     <span className="uppercase font-bold">{previewItem.targetFormat}</span>
                     <span>•</span>
                     <span>{previewItem.date.toLocaleString()}</span>
@@ -1002,14 +1024,14 @@ export default function App() {
                 </div>
                 <button 
                   onClick={() => setPreviewItem(null)}
-                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors shrink-0"
+                  className="preview-modal-close w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors shrink-0"
                 >
                   <X className="w-5 h-5 text-gray-600" strokeWidth={2.5} />
                 </button>
               </div>
 
               {/* Preview Content */}
-              <div className="flex-1 overflow-auto p-4 sm:p-6 bg-gray-50 flex items-center justify-center">
+              <div className="preview-modal-content flex-1 overflow-auto p-4 sm:p-6 bg-gray-50 flex items-center justify-center">
                 {previewItem.thumbnail ? (
                   <img 
                     src={URL.createObjectURL(previewItem.blob)} 
@@ -1019,22 +1041,22 @@ export default function App() {
                 ) : (
                   <div className="text-center py-12">
                     <FileIcon type={previewItem.originalType} />
-                    <p className="text-gray-500 mt-4 font-medium">Preview not available</p>
+                    <p className="preview-modal-empty-text text-gray-500 mt-4 font-medium">Preview not available</p>
                   </div>
                 )}
               </div>
 
               {/* Preview Footer */}
-              <div className="p-4 sm:p-6 border-t border-gray-100 flex items-center justify-between shrink-0 bg-white">
-                <div className="text-[13px] text-gray-600 font-medium">
-                  <span className="text-gray-400">Original:</span> {(previewItem.originalSize / 1024 / 1024).toFixed(2)} MB
+              <div className="preview-modal-footer p-4 sm:p-6 border-t border-gray-100 flex items-center justify-between shrink-0 bg-white">
+                <div className="preview-modal-size text-[13px] text-gray-600 font-medium">
+                  <span className="preview-modal-size-label text-gray-400">Original:</span> {(previewItem.originalSize / 1024 / 1024).toFixed(2)} MB
                 </div>
                 <button 
                   onClick={() => {
                     downloadHistoryItem(previewItem);
                     setPreviewItem(null);
                   }}
-                  className="bg-gradient-to-br from-[#2563EB] to-[#1E40AF] text-white px-6 py-3 rounded-full font-bold text-[14px] hover:from-[#1E40AF] hover:to-[#1E3A8A] transition-all flex items-center space-x-2 shadow-xl shadow-blue-500/40 hover:shadow-2xl hover:shadow-blue-600/50 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/20 before:to-transparent before:opacity-60"
+                  className="preview-download-btn bg-gradient-to-br from-[#2563EB] to-[#1E40AF] text-white px-6 py-3 rounded-full font-bold text-[14px] hover:from-[#1E40AF] hover:to-[#1E3A8A] transition-all flex items-center space-x-2 shadow-xl shadow-blue-500/40 hover:shadow-2xl hover:shadow-blue-600/50 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/20 before:to-transparent before:opacity-60"
                 >
                   <Download className="w-4 h-4 relative z-10" strokeWidth={2.5} />
                   <span className="relative z-10">Download</span>
