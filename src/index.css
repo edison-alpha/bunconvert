@@ -429,3 +429,56 @@ body.theme-dark {
     animation-duration: 2.4s;
   }
 }
+
+@keyframes app-tour-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.34), 0 18px 38px rgba(15, 23, 42, 0.28);
+  }
+  50% {
+    transform: scale(1.008);
+    box-shadow: 0 0 0 12px rgba(59, 130, 246, 0), 0 20px 46px rgba(15, 23, 42, 0.34);
+  }
+}
+
+.app-tour-highlight {
+  animation: app-tour-pulse 1.65s ease-in-out infinite;
+  will-change: transform, box-shadow;
+  z-index: 234;
+  border-style: dashed;
+  border-width: 2px;
+  border-radius: 20px;
+}
+
+.app-shell.theme-dark .app-tour-highlight {
+  box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.22), 0 20px 42px rgba(2, 6, 23, 0.55);
+}
+
+.app-tour-cutout {
+  z-index: 233;
+  background: transparent;
+  box-shadow: 0 0 0 9999px rgba(2, 6, 23, 0.62);
+}
+
+.app-tour-cutout::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px dashed rgba(148, 163, 184, 0.4);
+}
+
+.app-shell.theme-dark .app-tour-cutout {
+  box-shadow: 0 0 0 9999px rgba(2, 6, 23, 0.72);
+}
+
+.app-shell.theme-light .app-tour-cutout {
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.56);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-tour-highlight {
+    animation: none;
+  }
+}

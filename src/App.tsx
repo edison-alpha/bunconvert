@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Plus, Upload, Zap, X, File, Image as ImageIcon, Video, Music, Archive, RefreshCw, MoreHorizontal, CheckCircle2, Download, Bell, ChevronDown, History, Coffee, UserRound, ArrowLeftRight, Search, Moon, Sun, Wallet, Copy, Check, Smartphone, QrCode } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Plus, Upload, Zap, X, File, Image as ImageIcon, Video, Music, Archive, RefreshCw, MoreHorizontal, CheckCircle2, Download, Bell, ChevronDown, History, Coffee, UserRound, ArrowLeftRight, Search, Moon, Sun, Wallet, Copy, Check, Smartphone, QrCode, CircleHelp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import brandLogo from './assets/img/brand.png';
 import ConversionBeamLoader from './components/ConversionBeamLoader';
@@ -30,6 +30,48 @@ interface HistoryItem {
 }
 
 type MobileMenuAction = 'convert' | 'history' | 'buycoffee' | 'profile';
+
+interface TourStep {
+  id: string;
+  title: string;
+  description: string;
+  selector?: string;
+  placement?: 'top' | 'bottom' | 'center';
+  tab?: 'convert' | 'history' | 'buycoffee';
+}
+
+interface TourRect {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+  bottom: number;
+}
+
+const TOUR_COMPLETED_STORAGE_KEY = 'bunconvert-tour-completed';
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+const findVisibleElement = (selector: string): HTMLElement | null => {
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  const candidates = Array.from(document.querySelectorAll<HTMLElement>(selector));
+  return (
+    candidates.find((element) => {
+      const rect = element.getBoundingClientRect();
+      const computed = window.getComputedStyle(element);
+      return (
+        rect.width > 0 &&
+        rect.height > 0 &&
+        computed.display !== 'none' &&
+        computed.visibility !== 'hidden' &&
+        computed.opacity !== '0'
+      );
+    }) ?? null
+  );
+};
 
 const getTargetFormats = (fileType: string) => {
   if (fileType.startsWith('image/')) return ['JPG', 'PNG', 'WEBP', 'GIF', 'PDF'];
@@ -256,8 +298,13 @@ export default function App() {
   const [tempUsername, setTempUsername] = useState(username);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.localStorage.getItem('bunconvert-theme') === 'dark';
+    if (typeof window === 'undefined') return true;
+
+    const savedTheme = window.localStorage.getItem('bunconvert-theme');
+    if (savedTheme === 'dark') return true;
+    if (savedTheme === 'light') return false;
+
+    return true;
   });
   const [showSearchForm, setShowSearchForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -266,6 +313,11 @@ export default function App() {
     if (typeof window === 'undefined') return false;
     return window.innerWidth < 640; // sm breakpoint
   });
+  const [isTourOpen, setIsTourOpen] = useState(false);
+  const [tourStepIndex, setTourStepIndex] = useState(0);
+  const [tourTargetRect, setTourTargetRect] = useState<TourRect | null>(null);
+  const [tourTooltipHeight, setTourTooltipHeight] = useState(0);
+  const tourTooltipRef = useRef<HTMLDivElement | null>(null);
 
   const requestNotificationPermission = async (): Promise<NotificationPermission> => {
     if (!('Notification' in window)) {
@@ -752,6 +804,380 @@ export default function App() {
     }
   }, [activeTab, historyViewMode]);
 
+  const tourSteps = useMemo<TourStep[]>(() => {
+    const baseSteps: TourStep[] = [
+      {
+        id: 'welcome',
+        title: 'Tutorial cepat Bunconvert',
+        description:
+          'Ikuti 4 langkah singkat: upload file, pilih format, convert, lalu unduh dari History.',
+        placement: 'center',
+      },
+      {
+        id: 'upload',
+        title: '1) Upload file',
+        description: 'Klik area upload atau drag-and-drop file ke sini.',
+        selector: '[data-tour="upload-zone"]',
+        tab: 'convert',
+      },
+      {
+        id: 'settings',
+        title: '2) Atur output',
+        description: 'Pilih format target dan level kompresi sesuai kebutuhan.',
+        selector: '[data-tour="conversion-settings"]',
+        tab: 'convert',
+      },
+      {
+        id: 'convert',
+        title: '3) Mulai convert',
+        description: 'Tekan Convert untuk memulai. Progress akan tampil otomatis.',
+        selector: '[data-tour="convert-button"]',
+        tab: 'convert',
+        placement: 'top',
+      },
+      {
+        id: 'history',
+        title: '4) Ambil hasil di History',
+        description: 'Buka History untuk preview, unduh ulang, dan cek file yang sudah selesai.',
+        selector: '[data-tour="history-list"]',
+        tab: 'history',
+      },
+    ];
+
+    if (!isMobileView) {
+      return baseSteps;
+    }
+
+    return [
+      ...baseSteps.slice(0, 4),
+      {
+        id: 'mobile-dock',
+        title: 'Navigasi bawah',
+        description:
+          'Gunakan dock bawah untuk pindah cepat ke Convert, History, dan menu lain.',
+        selector: '[data-tour="mobile-dock"]',
+        tab: 'convert',
+        placement: 'top',
+      },
+      baseSteps[4],
+    ];
+  }, [isMobileView]);
+
+  const closeTour = useCallback((markAsCompleted = true) => {
+    setIsTourOpen(false);
+    setTourTargetRect(null);
+
+    if (markAsCompleted && typeof window !== 'undefined') {
+      window.localStorage.setItem(TOUR_COMPLETED_STORAGE_KEY, 'true');
+    }
+  }, []);
+
+  const openTour = useCallback(() => {
+    setShowMobileProfile(false);
+    setShowSearchForm(false);
+    setMobileMenuBaseAction('convert');
+    setActiveTab('convert');
+    setHistoryViewMode('recent');
+    setTourStepIndex(0);
+    setIsTourOpen(true);
+
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, []);
+
+  const activeTourStep = tourSteps[tourStepIndex] ?? null;
+  const isLastTourStep = tourStepIndex >= tourSteps.length - 1;
+
+  const syncTourStepContext = useCallback(
+    (step: TourStep) => {
+      if (step.tab === 'convert') {
+        setShowMobileProfile(false);
+        setShowSearchForm(false);
+        setMobileMenuBaseAction('convert');
+        setActiveTab('convert');
+        setHistoryViewMode('recent');
+      } else if (step.tab === 'history') {
+        setShowMobileProfile(false);
+        setShowSearchForm(false);
+        setMobileMenuBaseAction('history');
+        setActiveTab('history');
+        setHistoryViewMode(isMobileView ? 'all' : 'recent');
+      } else if (step.tab === 'buycoffee') {
+        openBuyCoffeePage();
+      }
+    },
+    [isMobileView, openBuyCoffeePage]
+  );
+
+  const updateTourTargetRect = useCallback(
+    (scrollTargetIntoView = false) => {
+      if (!isTourOpen || !activeTourStep) {
+        return;
+      }
+
+      if (!activeTourStep.selector) {
+        setTourTargetRect(null);
+        return;
+      }
+
+      const targetElement = findVisibleElement(activeTourStep.selector);
+
+      if (!targetElement) {
+        setTourTargetRect(null);
+        return;
+      }
+
+      if (scrollTargetIntoView) {
+        targetElement.scrollIntoView({
+          block: 'center',
+          inline: 'nearest',
+          behavior: 'smooth',
+        });
+      }
+
+      const rect = targetElement.getBoundingClientRect();
+      setTourTargetRect({
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+        bottom: rect.bottom,
+      });
+    },
+    [activeTourStep, isTourOpen]
+  );
+
+  useEffect(() => {
+    if (showLoader || typeof window === 'undefined') {
+      return;
+    }
+
+    const hasCompletedTour = window.localStorage.getItem(TOUR_COMPLETED_STORAGE_KEY) === 'true';
+    if (hasCompletedTour) {
+      return;
+    }
+
+    const timerId = window.setTimeout(() => {
+      openTour();
+    }, 850);
+
+    return () => window.clearTimeout(timerId);
+  }, [showLoader, openTour]);
+
+  useEffect(() => {
+    if (!isTourOpen || !activeTourStep) {
+      return;
+    }
+
+    syncTourStepContext(activeTourStep);
+
+    let secondPassId: number | undefined;
+    const firstPassId = window.setTimeout(() => {
+      updateTourTargetRect(Boolean(activeTourStep.selector));
+
+      secondPassId = window.setTimeout(() => {
+        updateTourTargetRect(false);
+      }, 220);
+    }, 110);
+
+    return () => {
+      window.clearTimeout(firstPassId);
+      if (secondPassId !== undefined) {
+        window.clearTimeout(secondPassId);
+      }
+    };
+  }, [isTourOpen, activeTourStep, syncTourStepContext, updateTourTargetRect]);
+
+  useEffect(() => {
+    if (!isTourOpen) {
+      return;
+    }
+
+    const handleReposition = () => {
+      updateTourTargetRect(false);
+    };
+
+    window.addEventListener('resize', handleReposition);
+    window.addEventListener('scroll', handleReposition, true);
+
+    return () => {
+      window.removeEventListener('resize', handleReposition);
+      window.removeEventListener('scroll', handleReposition, true);
+    };
+  }, [isTourOpen, updateTourTargetRect]);
+
+  const handleTourPrev = useCallback(() => {
+    setTourStepIndex(prev => Math.max(0, prev - 1));
+  }, []);
+
+  const handleTourNext = useCallback(() => {
+    if (isLastTourStep) {
+      closeTour(true);
+      return;
+    }
+
+    setTourStepIndex(prev => Math.min(tourSteps.length - 1, prev + 1));
+  }, [closeTour, isLastTourStep, tourSteps.length]);
+
+  useEffect(() => {
+    if (!isTourOpen) {
+      return;
+    }
+
+    const handleTourKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeTour(false);
+      } else if (event.key === 'ArrowRight' || event.key === 'Enter') {
+        event.preventDefault();
+        handleTourNext();
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        handleTourPrev();
+      }
+    };
+
+    window.addEventListener('keydown', handleTourKeyDown);
+    return () => window.removeEventListener('keydown', handleTourKeyDown);
+  }, [closeTour, handleTourNext, handleTourPrev, isTourOpen]);
+
+  useEffect(() => {
+    if (!isTourOpen) {
+      return;
+    }
+
+    const measureTooltip = () => {
+      const nextHeight = tourTooltipRef.current?.offsetHeight ?? 0;
+
+      setTourTooltipHeight(prev => (Math.abs(prev - nextHeight) > 1 ? nextHeight : prev));
+    };
+
+    measureTooltip();
+    const frameId = window.requestAnimationFrame(measureTooltip);
+    const timeoutId = window.setTimeout(measureTooltip, 140);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [activeTourStep, isDarkMode, isMobileView, isTourOpen, tourStepIndex]);
+
+  const tourSpotlightRect = useMemo(() => {
+    if (!tourTargetRect || !activeTourStep?.selector) {
+      return null;
+    }
+
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 390;
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 844;
+    const padding = isMobileView ? 7 : 10;
+
+    const top = clamp(tourTargetRect.top - padding, 8, viewportHeight - 8);
+    const left = clamp(tourTargetRect.left - padding, 8, viewportWidth - 8);
+    const width = clamp(tourTargetRect.width + padding * 2, 24, viewportWidth - left - 8);
+    const height = clamp(tourTargetRect.height + padding * 2, 24, viewportHeight - top - 8);
+
+    return {
+      top,
+      left,
+      width,
+      height,
+      right: left + width,
+      bottom: top + height,
+    };
+  }, [activeTourStep?.selector, isMobileView, tourTargetRect]);
+
+  const tourHighlightStyle = useMemo<React.CSSProperties | null>(() => {
+    if (!tourSpotlightRect) {
+      return null;
+    }
+
+    return {
+      top: tourSpotlightRect.top,
+      left: tourSpotlightRect.left,
+      width: tourSpotlightRect.width,
+      height: tourSpotlightRect.height,
+    };
+  }, [tourSpotlightRect]);
+
+  const tourTooltipStyle = useMemo<React.CSSProperties>(() => {
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 390;
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 844;
+    const edgePadding = isMobileView ? 10 : 16;
+    const tooltipWidth = Math.max(
+      220,
+      Math.min(isMobileView ? 292 : 332, viewportWidth - edgePadding * 2)
+    );
+    const tooltipHeight = Math.max(
+      isMobileView ? 176 : 168,
+      tourTooltipHeight || (isMobileView ? 206 : 194)
+    );
+    const maxLeft = Math.max(edgePadding, viewportWidth - tooltipWidth - edgePadding);
+    const maxTop = Math.max(edgePadding, viewportHeight - tooltipHeight - edgePadding);
+
+    if (!activeTourStep || activeTourStep.placement === 'center' || !tourSpotlightRect) {
+      return {
+        width: tooltipWidth,
+        left: (viewportWidth - tooltipWidth) / 2,
+        top: clamp(
+          (viewportHeight - tooltipHeight) / 2,
+          edgePadding,
+          maxTop
+        ),
+      };
+    }
+
+    const anchorCenterX = tourSpotlightRect.left + tourSpotlightRect.width / 2;
+    const left = clamp(
+      anchorCenterX - tooltipWidth / 2,
+      edgePadding,
+      maxLeft
+    );
+    const gap = isMobileView ? 10 : 12;
+    const availableAbove = tourSpotlightRect.top - edgePadding - gap;
+    const availableBelow = viewportHeight - tourSpotlightRect.bottom - edgePadding - gap;
+
+    const resolvePlacement = (): 'top' | 'bottom' => {
+      if (activeTourStep.placement === 'top') {
+        if (availableAbove >= tooltipHeight) return 'top';
+        if (availableBelow >= tooltipHeight) return 'bottom';
+        return availableAbove >= availableBelow ? 'top' : 'bottom';
+      }
+
+      if (activeTourStep.placement === 'bottom') {
+        if (availableBelow >= tooltipHeight) return 'bottom';
+        if (availableAbove >= tooltipHeight) return 'top';
+        return availableBelow >= availableAbove ? 'bottom' : 'top';
+      }
+
+      if (availableBelow >= tooltipHeight) return 'bottom';
+      if (availableAbove >= tooltipHeight) return 'top';
+      return availableBelow >= availableAbove ? 'bottom' : 'top';
+    };
+
+    const placement = resolvePlacement();
+    const top =
+      placement === 'top'
+        ? clamp(
+            tourSpotlightRect.top - gap - tooltipHeight,
+            edgePadding,
+            maxTop
+          )
+        : clamp(
+            tourSpotlightRect.bottom + gap,
+            edgePadding,
+            maxTop
+          );
+
+    return {
+      width: tooltipWidth,
+      left,
+      top,
+    };
+  }, [activeTourStep, isMobileView, tourSpotlightRect, tourTooltipHeight]);
+
+  const tourProgress = ((tourStepIndex + 1) / Math.max(1, tourSteps.length)) * 100;
+
   const overallProgress = files.length > 0
     ? Math.round(files.reduce((total, file) => total + file.progress, 0) / files.length)
     : 0;
@@ -866,8 +1292,24 @@ export default function App() {
         }`}
         aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
         title={isDarkMode ? 'Light mode' : 'Dark mode'}
+        data-tour="theme-toggle"
       >
         {isDarkMode ? <Sun className="h-[18px] w-[18px]" strokeWidth={2.35} /> : <Moon className="h-[18px] w-[18px]" strokeWidth={2.35} />}
+      </button>
+
+      <button
+        type="button"
+        onClick={openTour}
+        className={`fixed right-4 top-[4.35rem] z-[120] flex h-10 items-center gap-1.5 rounded-full border px-3 text-[11px] font-semibold backdrop-blur-xl transition-all duration-300 sm:right-6 sm:top-[4.85rem] ${
+          isDarkMode
+            ? 'border-slate-600/80 bg-slate-900/85 text-slate-100 shadow-[0_10px_24px_rgba(0,0,0,0.38)]'
+            : 'border-white/80 bg-white/85 text-slate-700 shadow-[0_10px_24px_rgba(15,23,42,0.16)]'
+        }`}
+        aria-label="Buka tutorial cepat"
+        title="Tutorial cepat"
+      >
+        <CircleHelp className="h-4 w-4" strokeWidth={2.3} />
+        <span>Tutorial</span>
       </button>
 
       {/* Top Navbar */}
@@ -968,7 +1410,7 @@ export default function App() {
 
             {/* Background tab to mimic layering - only show for convert and history */}
             {!isBuyCoffeeTab && (
-              <div className={`converter-tabs mx-4 h-10 flex rounded-t-3xl border border-[#dce5f3] border-b-0 z-0 overflow-hidden text-[10px] font-bold uppercase tracking-[0.1em] -mb-2`}>
+              <div data-tour="converter-tabs" className={`converter-tabs mx-4 h-10 flex rounded-t-3xl border border-[#dce5f3] border-b-0 z-0 overflow-hidden text-[10px] font-bold uppercase tracking-[0.1em] -mb-2`}>
                 <button 
                   onClick={() => {
                     setMobileMenuBaseAction('convert');
@@ -1018,6 +1460,7 @@ export default function App() {
                   {/* Top Actions */}
                   <div className="p-4 flex pb-2 shrink-0">
                     <button
+                      data-tour="upload-zone"
                       type="button"
                       onClick={() => document.getElementById('file-upload')?.click()}
                       className={`add-files-btn group relative flex w-full flex-col items-center justify-center rounded-[26px] border-2 border-dashed px-4 py-4 text-center transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/70 sm:py-5 ${
@@ -1055,7 +1498,7 @@ export default function App() {
                   </div>
 
                   {/* Form / Scroll Area */}
-                  <div className="px-5 divide-y divide-gray-100 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
+                  <div data-tour="conversion-settings" className="px-5 divide-y divide-gray-100 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                     {done ? (
                        <div className="py-10 flex flex-col items-center justify-center text-center animate-in fade-in zoom-in duration-300 relative">
                          <div className="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mb-4">
@@ -1189,6 +1632,7 @@ export default function App() {
                       <MoreHorizontal className="w-5 h-5 text-gray-800" strokeWidth={2.5} />
                     </button>
                     <button 
+                      data-tour="convert-button"
                       onClick={handleAction}
                       disabled={converting || (!done && files.length === 0)}
                       className={`convert-main-btn flex-1 ml-3 font-bold text-[15px] rounded-full py-3.5 transition-all outline-none flex items-center justify-center relative overflow-hidden
@@ -1228,7 +1672,7 @@ export default function App() {
                     </span>
                   </div>
 
-                  <div className="history-list-area px-4 sm:px-5 py-2 pb-3 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 flex-1 min-h-0">
+                  <div data-tour="history-list" className="history-list-area px-4 sm:px-5 py-2 pb-3 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 flex-1 min-h-0">
                     {history.length === 0 ? (
                       <div className="py-20 flex flex-col items-center justify-center text-center">
                         <Archive className="w-12 h-12 text-gray-200 mb-4" strokeWidth={1.5} />
@@ -1580,6 +2024,7 @@ export default function App() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2, ease: 'easeOut' }}
+                data-tour="mobile-dock"
                 className={`mobile-dock relative flex h-[60px] flex-1 items-center justify-between overflow-visible rounded-full border px-[6px] shadow-[0_18px_38px_rgba(15,23,42,0.16),0_8px_18px_rgba(255,255,255,0.42)_inset] backdrop-blur-[28px] ${
                   isDarkMode
                     ? 'border-slate-600/80 bg-[linear-gradient(180deg,rgba(30,41,59,0.92)_0%,rgba(30,41,59,0.64)_48%,rgba(15,23,42,0.82)_100%)]'
@@ -1820,28 +2265,39 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="mt-4 flex gap-2">
+                    <div className="mt-4 flex flex-col gap-2">
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMobileMenuBaseAction('history');
+                            setActiveTab('history');
+                            setHistoryViewMode('all');
+                            setShowMobileProfile(false);
+                          }}
+                          className="mobile-profile-secondary-btn flex-1 rounded-full bg-white px-4 py-3 text-[13px] font-semibold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
+                        >
+                          Open history
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            openBuyCoffeePage();
+                            setShowMobileProfile(false);
+                          }}
+                          className="mobile-profile-primary-btn flex-1 rounded-full bg-gradient-to-br from-[#2563EB] to-[#1E40AF] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_14px_30px_rgba(37,99,235,0.35)]"
+                        >
+                          Buy me coffee
+                        </button>
+                      </div>
+
                       <button
                         type="button"
-                        onClick={() => {
-                          setMobileMenuBaseAction('history');
-                          setActiveTab('history');
-                          setHistoryViewMode('all');
-                          setShowMobileProfile(false);
-                        }}
-                        className="mobile-profile-secondary-btn flex-1 rounded-full bg-white px-4 py-3 text-[13px] font-semibold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
+                        onClick={openTour}
+                        className="mobile-profile-secondary-btn flex items-center justify-center gap-2 rounded-full bg-white px-4 py-3 text-[13px] font-semibold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
                       >
-                        Open history
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          openBuyCoffeePage();
-                          setShowMobileProfile(false);
-                        }}
-                        className="mobile-profile-primary-btn flex-1 rounded-full bg-gradient-to-br from-[#2563EB] to-[#1E40AF] px-4 py-3 text-[13px] font-semibold text-white shadow-[0_14px_30px_rgba(37,99,235,0.35)]"
-                      >
-                        Buy me coffee
+                        <CircleHelp className="h-4 w-4" strokeWidth={2.3} />
+                        Tutorial cepat
                       </button>
                     </div>
                   </div>
@@ -1964,6 +2420,157 @@ export default function App() {
                   <span className="relative z-10">Download</span>
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isTourOpen && activeTourStep && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[230]"
+          >
+            <button
+              type="button"
+              onClick={() => closeTour(false)}
+              className={`absolute inset-0 ${tourHighlightStyle ? '' : 'bg-slate-950/62'}`}
+              aria-label="Tutup overlay tutorial"
+            />
+
+            {tourHighlightStyle ? (
+              <>
+                <motion.div
+                  key={`${activeTourStep.id}-cutout`}
+                  initial={{ opacity: 0.65 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.18, ease: 'easeOut' }}
+                  className="app-tour-cutout pointer-events-none fixed rounded-[20px]"
+                  style={tourHighlightStyle}
+                />
+
+                <motion.div
+                  key={`${activeTourStep.id}-ring`}
+                  initial={{ opacity: 0.6, scale: 0.985 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className={`app-tour-highlight pointer-events-none fixed rounded-[20px] border-2 border-dashed ${
+                    isDarkMode
+                      ? 'border-blue-300/90 shadow-[0_0_0_1px_rgba(147,197,253,0.28)]'
+                      : 'border-blue-500/90 shadow-[0_0_0_1px_rgba(37,99,235,0.3)]'
+                  }`}
+                  style={tourHighlightStyle}
+                />
+              </>
+            ) : null}
+
+            <motion.div
+              ref={tourTooltipRef}
+              key={`tour-tooltip-${activeTourStep.id}`}
+              initial={{ opacity: 0, y: 12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.98 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+              style={tourTooltipStyle}
+              className={`pointer-events-auto fixed z-[236] rounded-[20px] border p-3.5 shadow-[0_18px_52px_rgba(15,23,42,0.34)] sm:p-4 ${
+                isDarkMode
+                  ? 'border-slate-600/70 bg-slate-900/98 text-slate-100'
+                  : 'border-white/80 bg-white/98 text-slate-900'
+              }`}
+              role="dialog"
+              aria-modal="true"
+              aria-label={`Langkah tutorial ${tourStepIndex + 1} dari ${tourSteps.length}`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className={`text-[10px] font-bold uppercase tracking-[0.18em] ${
+                  isDarkMode ? 'text-blue-300' : 'text-blue-700'
+                }`}>
+                  Tutorial cepat
+                </span>
+                <button
+                  type="button"
+                  onClick={() => closeTour(true)}
+                  className={`rounded-full px-2.5 py-1 text-[10px] font-semibold transition-colors ${
+                    isDarkMode
+                      ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Lewati
+                </button>
+              </div>
+
+              <h3 className="mt-2.5 text-[15px] font-bold leading-tight sm:text-[16px]">{activeTourStep.title}</h3>
+              <p className={`mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-400'
+              }`}>
+                Langkah {tourStepIndex + 1} / {tourSteps.length}
+              </p>
+              <p className={`mt-1.5 text-[12px] font-medium leading-relaxed ${
+                isDarkMode ? 'text-slate-300' : 'text-slate-600'
+              }`}>
+                {activeTourStep.description}
+              </p>
+
+              <div className={`mt-3 h-1.5 overflow-hidden rounded-full ${
+                isDarkMode ? 'bg-slate-800' : 'bg-slate-200'
+              }`}>
+                <motion.div
+                  animate={{ width: `${tourProgress}%` }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className="h-full rounded-full bg-gradient-to-r from-[#2563EB] to-[#1E40AF]"
+                />
+              </div>
+
+              <div className="mt-1.5 flex items-center gap-1.5">
+                {tourSteps.map((step, index) => (
+                  <span
+                    key={step.id}
+                    className={`h-1.5 rounded-full transition-all duration-200 ${
+                      index === tourStepIndex
+                        ? 'w-5 bg-[#2563EB]'
+                        : isDarkMode
+                          ? 'w-1.5 bg-slate-600'
+                          : 'w-1.5 bg-slate-300'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={handleTourPrev}
+                  disabled={tourStepIndex === 0}
+                  className={`min-w-[76px] rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors ${
+                    tourStepIndex === 0
+                      ? isDarkMode
+                        ? 'cursor-not-allowed bg-slate-800 text-slate-500'
+                        : 'cursor-not-allowed bg-slate-100 text-slate-400'
+                      : isDarkMode
+                        ? 'bg-slate-800 text-slate-200 hover:bg-slate-700'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  Sebelumnya
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleTourNext}
+                  className="min-w-[94px] rounded-full bg-gradient-to-br from-[#2563EB] to-[#1E40AF] px-3 py-1.5 text-[12px] font-semibold text-white shadow-[0_10px_22px_rgba(37,99,235,0.35)] transition-all hover:from-[#1E40AF] hover:to-[#1E3A8A]"
+                >
+                  {isLastTourStep ? 'Selesai' : 'Lanjut'}
+                </button>
+              </div>
+
+              <p className={`mt-2.5 text-[9px] font-medium ${
+                isDarkMode ? 'text-slate-500' : 'text-slate-400'
+              }`}>
+                Shortcut: <span className="font-bold">←</span> / <span className="font-bold">→</span> / <span className="font-bold">Enter</span> / <span className="font-bold">Esc</span>.
+              </p>
             </motion.div>
           </motion.div>
         )}
