@@ -127,6 +127,11 @@ export default function App() {
   });
   const [showSearchForm, setShowSearchForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isFileListExpanded, setIsFileListExpanded] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 640; // sm breakpoint
+  });
 
   const requestNotificationPermission = async (): Promise<NotificationPermission> => {
     if (!('Notification' in window)) {
@@ -213,6 +218,15 @@ export default function App() {
     }
   }, [previewItem, converting]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 640);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const showNotification = async () => {
     // Notifications are optional and only shown when permission is granted.
     if (!('Notification' in window)) {
@@ -256,6 +270,7 @@ export default function App() {
 
   const processFiles = (fileList: FileList | File[]) => {
     if (done) setDone(false);
+    setIsFileListExpanded(false); // Reset expansion when adding new files
     const newFiles: FileItem[] = Array.from(fileList).map(file => ({
       id: Math.random().toString(36).substring(7),
       name: file.name,
@@ -569,7 +584,7 @@ export default function App() {
   };
 
   const RECENT_HISTORY_LIMIT = 5;
-  const HISTORY_ITEMS_PER_PAGE = 6;
+  const HISTORY_ITEMS_PER_PAGE = 5;
   const historyTotalPages = Math.max(1, Math.ceil(history.length / HISTORY_ITEMS_PER_PAGE));
   const historyStartIndex = (historyPage - 1) * HISTORY_ITEMS_PER_PAGE;
   const recentHistory = history.slice(0, RECENT_HISTORY_LIMIT);
@@ -668,7 +683,7 @@ export default function App() {
             initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.45, ease: 'easeInOut' } }}
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black"
+            className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.92 }}
@@ -688,6 +703,17 @@ export default function App() {
               >
                 Loading
               </motion.span>
+            </motion.div>
+            
+            {/* NGDKLabs branding at bottom */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
+              className="absolute bottom-8 sm:bottom-10 flex flex-col items-center gap-0.5"
+            >
+              <span className="text-[11px] sm:text-xs font-normal text-white/40">from</span>
+              <span className="text-[13px] sm:text-sm font-bold text-blue-500 tracking-wide">NGDKLabs</span>
             </motion.div>
           </motion.div>
         )}
@@ -920,9 +946,9 @@ export default function App() {
                         </div>
                       </>
                     ) : (
-                      <div className="py-2">
+                      <div className="py-2 mb-1">
                         <AnimatePresence>
-                          {files.map(file => (
+                          {(isMobileView && !isFileListExpanded ? files.slice(0, 4) : files).map(file => (
                             <motion.div 
                               initial={{ opacity: 0, height: 0 }}
                               animate={{ opacity: 1, height: 'auto' }}
@@ -990,6 +1016,32 @@ export default function App() {
                             </motion.div>
                           ))}
                         </AnimatePresence>
+                        
+                        {/* Show More Button - Only on mobile when files > 4 */}
+                        {isMobileView && !converting && !done && files.length > 4 && (
+                          <div className="pt-1 pb-0">
+                            <button
+                              onClick={() => setIsFileListExpanded(!isFileListExpanded)}
+                              className={`w-full py-2.5 px-4 rounded-2xl font-semibold text-[13px] transition-all flex items-center justify-center gap-2 ${
+                                isDarkMode
+                                  ? 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border border-slate-700/60'
+                                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                              }`}
+                            >
+                              {isFileListExpanded ? (
+                                <>
+                                  <span>Show less</span>
+                                  <ChevronDown className="w-4 h-4 rotate-180 transition-transform" strokeWidth={2.5} />
+                                </>
+                              ) : (
+                                <>
+                                  <span>+{files.length - 4} more files</span>
+                                  <ChevronDown className="w-4 h-4 transition-transform" strokeWidth={2.5} />
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1039,7 +1091,7 @@ export default function App() {
                     </span>
                   </div>
 
-                  <div className="history-list-area px-4 sm:px-5 py-3 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 flex-1 min-h-0">
+                  <div className="history-list-area px-4 sm:px-5 py-2 pb-3 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 flex-1 min-h-0">
                     {history.length === 0 ? (
                       <div className="py-20 flex flex-col items-center justify-center text-center">
                         <Archive className="w-12 h-12 text-gray-200 mb-4" strokeWidth={1.5} />
@@ -1047,7 +1099,7 @@ export default function App() {
                         <p className={`text-[13px] font-medium ${isDarkMode ? 'text-slate-400' : 'text-gray-400'}`}>Files you convert will appear here</p>
                       </div>
                     ) : (
-                      <div className="grid gap-2.5 pb-2">
+                      <div className="grid gap-2 pb-1">
                         <AnimatePresence initial={false}>
                           {displayedHistoryItems.map(item => (
                             <motion.div
@@ -1118,12 +1170,12 @@ export default function App() {
                   </div>
 
                   {isHistoryFullPage && historyTotalPages > 1 && (
-                    <div className={`history-pagination px-4 sm:px-5 py-3 border-t shrink-0 flex items-center justify-between gap-2 ${isDarkMode ? 'border-slate-700/70 bg-slate-900/45' : 'border-gray-100 bg-white'}`}>
+                    <div className={`history-pagination px-3 sm:px-5 py-2.5 border-t shrink-0 flex items-center justify-between gap-2 ${isDarkMode ? 'border-slate-700/70 bg-slate-900/45' : 'border-gray-100 bg-white'}`}>
                       <button
                         type="button"
                         onClick={() => setHistoryPage(prev => Math.max(1, prev - 1))}
                         disabled={historyPage === 1}
-                        className={`min-w-[74px] rounded-full px-3 py-1.5 text-[11px] font-semibold transition-colors ${
+                        className={`min-w-[60px] sm:min-w-[74px] rounded-full px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-[11px] font-semibold transition-colors ${
                           historyPage === 1
                             ? isDarkMode
                               ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
@@ -1136,13 +1188,13 @@ export default function App() {
                         Prev
                       </button>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1 sm:gap-1.5">
                         {visibleHistoryPages.map(page => (
                           <button
                             key={page}
                             type="button"
                             onClick={() => setHistoryPage(page)}
-                            className={`h-7 min-w-7 rounded-full px-2 text-[11px] font-bold transition-all ${
+                            className={`h-6 min-w-6 sm:h-7 sm:min-w-7 rounded-full px-1.5 sm:px-2 text-[10px] sm:text-[11px] font-bold transition-all ${
                               historyPage === page
                                 ? 'bg-gradient-to-r from-[#2563EB] to-[#1E40AF] text-white shadow-md shadow-blue-500/35'
                                 : isDarkMode
@@ -1159,7 +1211,7 @@ export default function App() {
                         type="button"
                         onClick={() => setHistoryPage(prev => Math.min(historyTotalPages, prev + 1))}
                         disabled={historyPage === historyTotalPages}
-                        className={`min-w-[74px] rounded-full px-3 py-1.5 text-[11px] font-semibold transition-colors ${
+                        className={`min-w-[60px] sm:min-w-[74px] rounded-full px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-[11px] font-semibold transition-colors ${
                           historyPage === historyTotalPages
                             ? isDarkMode
                               ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
