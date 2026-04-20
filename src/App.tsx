@@ -810,7 +810,14 @@ export default function App() {
         id: 'welcome',
         title: 'Tutorial cepat Bunconvert',
         description:
-          'Ikuti 4 langkah singkat: upload file, pilih format, convert, lalu unduh dari History.',
+          'Ikuti langkah singkat: install ke Home Screen, upload file, atur output, convert, lalu unduh dari History.',
+        placement: 'center',
+      },
+      {
+        id: 'install-home',
+        title: 'Opsional: Install ke Home',
+        description:
+          'Agar lebih smooth seperti app native, buka menu browser lalu pilih Install App / Add to Home Screen.',
         placement: 'center',
       },
       {
@@ -849,7 +856,7 @@ export default function App() {
     }
 
     return [
-      ...baseSteps.slice(0, 4),
+      ...baseSteps.slice(0, 5),
       {
         id: 'mobile-dock',
         title: 'Navigasi bawah',
@@ -859,7 +866,7 @@ export default function App() {
         tab: 'convert',
         placement: 'top',
       },
-      baseSteps[4],
+      baseSteps[5],
     ];
   }, [isMobileView]);
 
