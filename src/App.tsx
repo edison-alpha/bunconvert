@@ -1404,6 +1404,7 @@ export default function App() {
                 {mobileMenuItems.map(({ key, label, icon: Icon }) => {
                   const isActive = activeMobileMenuAction === key;
                   const showHistoryBadge = key === 'history' && history.length > 0;
+                  const isProfileButton = key === 'profile';
 
                   return (
                     <button
@@ -1418,7 +1419,7 @@ export default function App() {
                         className={`relative flex h-full w-full flex-col items-center justify-center gap-[3px] overflow-hidden rounded-full p-[10px] ${
                           isActive
                             ? isDarkMode
-                              ? 'border border-slate-400/50 bg-slate-700/60 text-[#BFDBFE] shadow-[0_8px_18px_rgba(15,23,42,0.20),0_1px_0_rgba(203,213,225,0.12)_inset]'
+                              ? 'border border-slate-600/60 bg-gradient-to-b from-slate-700/50 via-slate-800/40 to-slate-900/50 text-[#4653FC] shadow-[0_8px_18px_rgba(0,0,0,0.3),0_1px_0_rgba(148,163,184,0.15)_inset] backdrop-blur-xl'
                               : 'border border-blue-200/60 bg-gradient-to-b from-white/80 via-blue-50/40 to-blue-100/30 text-[#2563EB] shadow-[0_8px_18px_rgba(59,130,246,0.15),0_1px_0_rgba(255,255,255,0.50)_inset]'
                             : isDarkMode
                               ? 'text-[#94A3B8]'
@@ -1429,25 +1430,37 @@ export default function App() {
                           <span
                             className={`pointer-events-none absolute inset-[3px] rounded-full ${
                               isDarkMode
-                                ? 'bg-slate-600/40'
+                                ? 'bg-gradient-to-b from-slate-600/20 via-slate-700/10 to-transparent backdrop-blur-sm'
                                 : 'bg-gradient-to-b from-white/60 to-transparent'
                             }`}
                           />
                         ) : null}
 
                         <span className="relative z-10 flex items-center justify-center">
-                          <Icon
-                            className={`${
-                              isActive
-                                ? isDarkMode
-                                  ? 'h-[24px] w-[24px] text-[#1D4ED8]'
-                                  : 'h-[24px] w-[24px] text-[#2563EB]'
-                                : isDarkMode
-                                  ? 'h-[22px] w-[22px] text-[#94A3B8]'
+                          {isProfileButton ? (
+                            <img 
+                              src={avatarUrl} 
+                              alt="User avatar"
+                              className={`rounded-full object-cover ${
+                                isActive
+                                  ? 'h-[24px] w-[24px] ring-2 ring-white/30'
                                   : 'h-[22px] w-[22px]'
-                            }`}
-                            strokeWidth={2.35}
-                          />
+                              }`}
+                            />
+                          ) : (
+                            <Icon
+                              className={`${
+                                isActive
+                                  ? isDarkMode
+                                    ? 'h-[24px] w-[24px] text-[#4653FC]'
+                                    : 'h-[24px] w-[24px] text-[#2563EB]'
+                                  : isDarkMode
+                                    ? 'h-[22px] w-[22px] text-[#94A3B8]'
+                                    : 'h-[22px] w-[22px]'
+                              }`}
+                              strokeWidth={2.35}
+                            />
+                          )}
 
                           {showHistoryBadge ? (
                             <span className="absolute -right-[8px] -top-[6px] flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full border border-white bg-[#ef4444] px-1 text-[9px] font-bold leading-none text-white shadow-[0_6px_14px_rgba(239,68,68,0.3)]">
@@ -1460,7 +1473,7 @@ export default function App() {
                           className={`relative z-10 text-[9px] font-semibold leading-none tracking-tight ${
                             isActive
                               ? isDarkMode
-                                ? 'text-[#1E40AF]'
+                                ? 'text-[#4653FC]'
                                 : 'text-[#2563EB]'
                               : isDarkMode
                                 ? 'text-[#94A3B8]'
