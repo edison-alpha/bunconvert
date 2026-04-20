@@ -47,6 +47,140 @@ const desktopNavItems = [
   { label: "What's new", hasChevron: false }
 ];
 
+const HISTORY_TITLE_MAX_VISIBLE_LENGTH = 18;
+
+const formatHistoryTitle = (name: string) => {
+  if (name.length <= HISTORY_TITLE_MAX_VISIBLE_LENGTH) {
+    return name;
+  }
+
+  return `${name.slice(0, HISTORY_TITLE_MAX_VISIBLE_LENGTH)}..`;
+};
+
+const SkeletonBlock = ({
+  className,
+}: {
+  className?: string;
+}) => <div aria-hidden className={`skeleton-shimmer ${className ?? ''}`} />;
+
+const BootSkeletonOverlay = ({ isDarkMode }: { isDarkMode: boolean }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.28, ease: 'easeInOut' } }}
+      className={`fixed inset-0 z-[200] overflow-hidden px-4 sm:px-8 ${
+        isDarkMode ? 'bg-[#0B1220]/94' : 'bg-[#E2ECFA]/94'
+      } backdrop-blur-xl`}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.22),transparent_58%)]" />
+
+      <div className="relative mx-auto flex h-full w-full max-w-[1080px] flex-col py-6 sm:py-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <SkeletonBlock className="h-10 w-10 rounded-full" />
+            <div className="space-y-2">
+              <SkeletonBlock className="h-3 w-28 rounded-full" />
+              <SkeletonBlock className="h-2.5 w-20 rounded-full opacity-80" />
+            </div>
+          </div>
+
+          <SkeletonBlock className="h-10 w-10 rounded-full" />
+        </div>
+
+        <div className="flex flex-1 items-center justify-center py-6 sm:py-10">
+          <div
+            className={`w-full max-w-[430px] rounded-[34px] border p-4 sm:p-5 ${
+              isDarkMode
+                ? 'border-slate-700/80 bg-slate-900/70 shadow-[0_28px_70px_rgba(2,6,23,0.62)]'
+                : 'border-white/75 bg-white/80 shadow-[0_28px_60px_rgba(15,23,42,0.18)]'
+            }`}
+          >
+            <div className="mb-4 space-y-2.5 text-center">
+              <SkeletonBlock className="mx-auto h-6 w-44 rounded-full sm:h-7 sm:w-52" />
+              <SkeletonBlock className="mx-auto h-2.5 w-28 rounded-full" />
+            </div>
+
+            <div
+              className={`mb-2 flex h-10 overflow-hidden rounded-t-3xl border ${
+                isDarkMode ? 'border-slate-700/70' : 'border-slate-200/70'
+              }`}
+            >
+              <SkeletonBlock className="h-full flex-1 rounded-none" />
+              <div className={`w-px ${isDarkMode ? 'bg-slate-700/60' : 'bg-slate-200/70'}`} />
+              <SkeletonBlock className="h-full flex-1 rounded-none opacity-75" />
+            </div>
+
+            <div
+              className={`overflow-hidden rounded-[28px] border ${
+                isDarkMode ? 'border-slate-700/70 bg-slate-950/55' : 'border-slate-200/70 bg-white/80'
+              }`}
+            >
+              <div className="space-y-3 p-4">
+                <SkeletonBlock className="h-[86px] w-full rounded-[24px]" />
+
+                <div className="space-y-2">
+                  <SkeletonBlock className="h-2.5 w-24 rounded-full" />
+                  <SkeletonBlock className="h-9 w-full rounded-2xl" />
+                </div>
+
+                <div className="space-y-2">
+                  <SkeletonBlock className="h-2.5 w-32 rounded-full" />
+                  <SkeletonBlock className="h-9 w-full rounded-2xl" />
+                </div>
+              </div>
+
+              <div
+                className={`flex items-center justify-between border-y px-4 py-3 ${
+                  isDarkMode ? 'border-slate-700/70 bg-slate-900/55' : 'border-slate-200/70 bg-slate-50/70'
+                }`}
+              >
+                <SkeletonBlock className="h-2.5 w-32 rounded-full" />
+                <SkeletonBlock className="h-2.5 w-20 rounded-full" />
+              </div>
+
+              <div className="space-y-3 px-4 py-3">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <SkeletonBlock className="h-10 w-10 shrink-0 rounded-2xl" />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <SkeletonBlock
+                        className={`h-3 rounded-full ${
+                          index === 0 ? 'w-4/5' : index === 1 ? 'w-3/5' : 'w-2/3'
+                        }`}
+                      />
+                      <SkeletonBlock
+                        className={`h-2.5 rounded-full opacity-80 ${
+                          index === 0 ? 'w-2/3' : index === 1 ? 'w-1/2' : 'w-3/5'
+                        }`}
+                      />
+                    </div>
+                    <SkeletonBlock className="h-8 w-14 rounded-xl" />
+                    <SkeletonBlock className="h-8 w-16 rounded-xl" />
+                  </div>
+                ))}
+              </div>
+
+              <div
+                className={`flex items-center gap-3 border-t px-4 py-4 ${
+                  isDarkMode ? 'border-slate-700/70 bg-slate-900/60' : 'border-slate-200/70 bg-white/75'
+                }`}
+              >
+                <SkeletonBlock className="h-10 w-10 shrink-0 rounded-2xl" />
+                <SkeletonBlock className="h-11 flex-1 rounded-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center pb-2">
+          <SkeletonBlock className="h-2 w-52 rounded-full" />
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
 const FileIcon = ({ type }: { type: string }) => {
   if (type.startsWith('image/')) return <ImageIcon className="w-4 h-4" />;
   if (type.startsWith('video/')) return <Video className="w-4 h-4" />;
@@ -679,43 +813,46 @@ export default function App() {
       <div className={`app-shell ${isDarkMode ? 'theme-dark' : 'theme-light'} min-h-screen flex flex-col font-sans w-full overflow-hidden relative transition-colors duration-300`}>
       <AnimatePresence mode="wait">
         {showLoader && (
-          <motion.div
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.45, ease: 'easeInOut' } }}
-            className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black"
-          >
+          <>
+            <BootSkeletonOverlay isDarkMode={isDarkMode} />
             <motion.div
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1, transition: { duration: 0.45, ease: 'easeOut' } }}
-              exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.25, ease: 'easeIn' } }}
-              className="flex flex-col items-center justify-center gap-6 px-6"
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.45, ease: 'easeInOut' } }}
+              className="fixed inset-0 z-[210] flex flex-col items-center justify-center bg-black/75"
             >
-              <img
-                src="/animate.webp"
-                alt="Loading animation"
-                className="w-[180px] sm:w-[220px] md:w-[260px] object-contain select-none pointer-events-none"
-              />
-              <motion.span
-                animate={{ opacity: [0.35, 1, 0.35] }}
-                transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
-                className="pl-[0.5em] text-[11px] font-semibold uppercase tracking-[0.5em] text-white/70 sm:text-xs"
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 1, scale: 1, transition: { duration: 0.45, ease: 'easeOut' } }}
+                exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.25, ease: 'easeIn' } }}
+                className="flex flex-col items-center justify-center gap-6 px-6"
               >
-                Loading
-              </motion.span>
+                <img
+                  src="/animate.webp"
+                  alt="Loading animation"
+                  className="w-[180px] sm:w-[220px] md:w-[260px] object-contain select-none pointer-events-none"
+                />
+                <motion.span
+                  animate={{ opacity: [0.35, 1, 0.35] }}
+                  transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+                  className="pl-[0.5em] text-[11px] font-semibold uppercase tracking-[0.5em] text-white/70 sm:text-xs"
+                >
+                  Loading
+                </motion.span>
+              </motion.div>
+
+              {/* NGDKLabs branding at bottom */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
+                className="absolute bottom-8 sm:bottom-10 flex flex-col items-center gap-0.5"
+              >
+                <span className="text-[11px] sm:text-xs font-normal text-white/40">from</span>
+                <span className="text-[13px] sm:text-sm font-bold text-blue-500 tracking-wide">NGDKLabs</span>
+              </motion.div>
             </motion.div>
-            
-            {/* NGDKLabs branding at bottom */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
-              className="absolute bottom-8 sm:bottom-10 flex flex-col items-center gap-0.5"
-            >
-              <span className="text-[11px] sm:text-xs font-normal text-white/40">from</span>
-              <span className="text-[13px] sm:text-sm font-bold text-blue-500 tracking-wide">NGDKLabs</span>
-            </motion.div>
-          </motion.div>
+          </>
         )}
       </AnimatePresence>
 
@@ -1133,7 +1270,7 @@ export default function App() {
 
                                 <div className="min-w-0 flex-1 overflow-hidden">
                                   <div className={`text-[13.5px] font-semibold truncate mb-0.5 max-w-full ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`} title={item.name}>
-                                    {item.name}
+                                    {formatHistoryTitle(item.name)}
                                   </div>
                                   <div className={`flex items-center flex-wrap gap-x-1.5 gap-y-0.5 text-[11px] font-medium ${isDarkMode ? 'text-slate-400' : 'text-gray-400'}`}>
                                     <span className={`${isDarkMode ? 'text-slate-300' : 'text-gray-500'} font-bold uppercase tracking-tight`}>
