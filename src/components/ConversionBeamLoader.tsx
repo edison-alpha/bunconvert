@@ -6,13 +6,15 @@ interface ConversionBeamLoaderProps {
   fileCount: number;
   fileNames: string[];
   isDarkMode?: boolean;
+  userAvatar?: string;
 }
 
 export default function ConversionBeamLoader({
   progress,
   fileCount,
   fileNames,
-  isDarkMode = false
+  isDarkMode = false,
+  userAvatar
 }: ConversionBeamLoaderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sourceRef = useRef<HTMLDivElement>(null);
@@ -39,19 +41,29 @@ export default function ConversionBeamLoader({
           />
           <div className="relative flex h-full w-full flex-col items-stretch justify-between gap-10">
             <div className="flex flex-row items-center justify-between">
-              <Circle
-                ref={sourceRef}
-                className={`h-12 w-12 sm:h-14 sm:w-14 ${
-                  isDarkMode
-                    ? 'border-slate-700/90 bg-slate-900 text-slate-100 shadow-[0_0_24px_-14px_rgba(59,130,246,0.55)]'
-                    : ''
-                }`}
-              >
-                <Icons.user />
-              </Circle>
+              {userAvatar ? (
+                <div ref={sourceRef} className="z-10 flex items-center justify-center">
+                  <img
+                    src={userAvatar}
+                    alt="User Profile"
+                    className="h-12 w-12 sm:h-14 sm:w-14 rounded-full object-cover shadow-lg"
+                  />
+                </div>
+              ) : (
+                <Circle
+                  ref={sourceRef}
+                  className={`h-12 w-12 sm:h-14 sm:w-14 ${
+                    isDarkMode
+                      ? 'border-slate-700/90 bg-slate-900 text-slate-100 shadow-[0_0_24px_-14px_rgba(59,130,246,0.55)]'
+                      : ''
+                  }`}
+                >
+                  <Icons.user />
+                </Circle>
+              )}
               <div ref={targetRef} className="z-10 flex items-center justify-center">
                 <img
-                  src="/brand.png"
+                  src="/animate.webp"
                   alt="BUNCONVERT"
                   className={`h-20 w-20 rounded-full object-cover sm:h-24 sm:w-24 ${
                     isDarkMode ? 'ring-2 ring-slate-700/85' : ''

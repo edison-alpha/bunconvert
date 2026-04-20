@@ -383,6 +383,7 @@ export default function App() {
 
     const nameWithoutExt = item.name.substring(0, item.name.lastIndexOf('.')) || item.name;
     const newName = `${nameWithoutExt}.${targetLower}`;
+    const downloadName = `${nameWithoutExt}-bunconvert.${targetLower}`;
     
     setHistory(prev => [{
       id: Math.random().toString(36).substring(7),
@@ -399,7 +400,7 @@ export default function App() {
     const url = URL.createObjectURL(finalBlob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = newName;
+    a.download = downloadName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -407,10 +408,14 @@ export default function App() {
   };
 
   const downloadHistoryItem = (item: HistoryItem) => {
+    const nameWithoutExt = item.name.substring(0, item.name.lastIndexOf('.')) || item.name;
+    const extension = item.name.substring(item.name.lastIndexOf('.')) || '';
+    const downloadName = `${nameWithoutExt}-bunconvert${extension}`;
+    
     const url = URL.createObjectURL(item.blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = item.name;
+    a.download = downloadName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1050,13 +1055,13 @@ export default function App() {
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: -8 }}
                               key={item.id}
-                              className={`history-item-card group rounded-[20px] border px-3.5 py-3 flex items-center justify-between gap-3 transition-all ${
+                              className={`history-item-card group rounded-[20px] border px-3.5 py-3 flex items-center gap-3 transition-all ${
                                 isDarkMode
                                   ? 'border-slate-700/75 bg-slate-900/70 hover:border-blue-400/45'
                                   : 'border-gray-100 bg-white hover:border-blue-200 hover:shadow-sm'
                               }`}
                             >
-                              <div className="flex items-center space-x-3 overflow-hidden min-w-0 flex-1">
+                              <div className="flex items-center space-x-3 min-w-0 flex-1 overflow-hidden">
                                 <div
                                   className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden cursor-pointer transition-all relative ${
                                     isDarkMode
@@ -1074,8 +1079,8 @@ export default function App() {
                                   )}
                                 </div>
 
-                                <div className="flex-1 min-w-0 pr-1">
-                                  <div className={`text-[13.5px] font-semibold truncate mb-0.5 ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`} title={item.name}>
+                                <div className="min-w-0 flex-1 overflow-hidden">
+                                  <div className={`text-[13.5px] font-semibold truncate mb-0.5 max-w-full ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`} title={item.name}>
                                     {item.name}
                                   </div>
                                   <div className={`flex items-center flex-wrap gap-x-1.5 gap-y-0.5 text-[11px] font-medium ${isDarkMode ? 'text-slate-400' : 'text-gray-400'}`}>
@@ -1682,6 +1687,7 @@ export default function App() {
                   fileCount={files.length}
                   fileNames={files.map(file => file.name)}
                   isDarkMode={isDarkMode}
+                  userAvatar={avatarUrl}
                 />
               </div>
             </motion.div>
